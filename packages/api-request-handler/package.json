@@ -1,0 +1,39 @@
+{
+  "name": "api-request-handler",
+  "description": "API Request Handler",
+  "version": "0.3.0",
+  "author": "Junmin Ahn",
+  "license": "MIT",
+  "keywords": [
+    "api",
+    "request",
+    "handler"
+  ],
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/junminahn/express-toolkit.git",
+    "directory": "packages/api-request-handler"
+  },
+  "bugs": {
+    "url": "https://github.com/junminahn/express-toolkit/issues"
+  },
+  "scripts": {
+    "test": "mocha --exit test.js"
+  },
+  "files": [
+    "LICENSE",
+    "HISTORY.md",
+    "index.js",
+    "test.js"
+  ],
+  "engines": {
+    "node": ">= 6.0.0"
+  },
+  "devDependencies": {
+    "axios": "^0.18.0",
+    "client-errors": "^0.9.1",
+    "express": "^4.16.4",
+    "mocha": "^5.2.0"
+  }
+}

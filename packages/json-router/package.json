@@ -1,0 +1,41 @@
+{
+  "name": "express-json-router",
+  "description": "Express router wrapper to send json response",
+  "version": "0.1.2",
+  "author": "Junmin Ahn",
+  "license": "MIT",
+  "keywords": [
+    "api",
+    "json",
+    "request",
+    "handler",
+    "express"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/junminahn/express-toolkit.git",
+    "directory": "packages/json-router"
+  },
+  "bugs": {
+    "url": "https://github.com/junminahn/express-toolkit/issues"
+  },
+  "scripts": {
+    "test": "mocha --exit test.js"
+  },
+  "files": [
+    "index.js"
+  ],
+  "engines": {
+    "node": ">= 12.18.3"
+  },
+  "devDependencies": {
+    "expect.js": "^0.3.1",
+    "express": "^4.17.1",
+    "mocha": "^8.2.0",
+    "supertest": "^6.0.0"
+  },
+  "dependencies": {
+    "api-request-handler": "^0.3.0",
+    "client-errors": "^0.9.1"
+  }
+}

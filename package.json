@@ -1,0 +1,32 @@
+{
+  "name": "express-toolkit",
+  "private": true,
+  "description": "A toolkit to handle Express.js requests easier",
+  "author": "Junmin Ahn",
+  "license": "MIT",
+  "scripts": {
+    "format": "git ls-files '*.js' '*.ts' | xargs prettier --write",
+    "lint": "git ls-files '*.js' '*.ts' | xargs yarn eslint",
+    "bootstrap": "lerna bootstrap",
+    "llink": "lerna link",
+    "clean": "lerna clean",
+    "test": "lerna run test",
+    "release": "lerna version --exact --no-changelog --no-push --no-git-tag-version && lerna publish from-package --dist-tag next"
+  },
+  "workspaces": {
+    "packages": [
+      "packages/*",
+      "examples/*"
+    ]
+  },
+  "devDependencies": {
+    "cz-conventional-changelog": "^3.3.0",
+    "eslint": "^7.16.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-config-prettier": "^7.1.0",
+    "eslint-plugin-import": "^2.22.1",
+    "lerna": "^3.22.1",
+    "prettier": "^2.2.1",
+    "standard-version": "^9.0.0"
+  }
+}

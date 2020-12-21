@@ -1,0 +1,28 @@
+{
+  "name": "client-errors",
+  "description": "Client error class for Node servers",
+  "version": "0.9.1",
+  "author": "Junmin Ahn",
+  "license": "MIT",
+  "keywords": [
+    "client-errors"
+  ],
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/junminahn/express-toolkit.git",
+    "directory": "packages/client-errors"
+  },
+  "bugs": {
+    "url": "https://github.com/junminahn/express-toolkit/issues"
+  },
+  "files": [
+    "LICENSE",
+    "HISTORY.md",
+    "index.js",
+    "messages.js"
+  ],
+  "engines": {
+    "node": ">= 6.0.0"
+  }
+}
