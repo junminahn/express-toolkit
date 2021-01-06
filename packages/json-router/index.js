@@ -88,4 +88,28 @@ Object.defineProperty(JsonRouter, 'errorMessageProvider', {
   },
 });
 
+Object.defineProperty(JsonRouter, 'preJson', {
+  set: function (preJsonHookFn) {
+    apiHandler.preJson = preJsonHookFn;
+  },
+});
+
+Object.defineProperty(JsonRouter, 'postJson', {
+  set: function (postJsonHookFn) {
+    apiHandler.postJson = postJsonHookFn;
+  },
+});
+
+Object.defineProperty(JsonRouter, 'preError', {
+  set: function (preErrorHookFn) {
+    apiHandler.preError = preErrorHookFn;
+  },
+});
+
+Object.defineProperty(JsonRouter, 'postError', {
+  set: function (postErrorHookFn) {
+    apiHandler.postError = postErrorHookFn;
+  },
+});
+
 module.exports = JsonRouter;

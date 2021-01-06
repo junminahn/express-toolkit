@@ -20,6 +20,13 @@ $ npm install api-request-handler
 
 - apiHandler.errorMessageProvider = customErrorMessageProvider
 
+### Hooks
+
+- apiHandler.preJson = preJsonHookFn
+- apiHandler.postJson = postJsonHookFn
+- apiHandler.preError = preErrorHookFn
+- apiHandler.postError = postErrorHookFn
+
 ### Example
 
 ```js

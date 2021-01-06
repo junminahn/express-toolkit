@@ -10,6 +10,7 @@ const assert = require('assert');
  */
 const isFunction = fn => typeof fn === 'function';
 const isPromise = p => p && isFunction(p.then);
+const promisify = p => (isPromise(p) ? p : a => Promise.resolve(p(a)));
 const { isArray } = Array;
 
 /**
@@ -37,19 +38,132 @@ const errorMessageProvider = {
 /**
  * Send a JSON response with status 200.
  */
-const sendJson = function (res, data) {
+const _sendJson = function (res, data) {
   res.json(data);
 };
 
 /**
  * Send an error message with 4xx response code.
  */
-const sendError = function (res, err) {
+const _sendError = function (res, err) {
   if (err.statusCode) {
     res.status(err.statusCode).send({ message: err.message });
   } else {
     res.status(422).send({ message: errorMessageProvider._provider(err) });
   }
+};
+
+let sendJson = _sendJson;
+let sendError = _sendError;
+
+/**
+ * Set pre-json hook
+ */
+const preJson = {
+  _hook: null,
+  get: function () {
+    return preJson._hook;
+  },
+  set: function (fn) {
+    assert.ok(isFunction(fn), 'pre-json hook must be a function');
+    preJson._hook = promisify(fn);
+
+    if (postJson._hook) {
+      sendJson = function (res, data) {
+        preJson._hook(data).then(() => {
+          _sendJson(res, data);
+          postJson._hook(data);
+        });
+      };
+    } else {
+      sendJson = function (res, data) {
+        preJson._hook(data).then(() => _sendJson(res, data));
+      };
+    }
+  },
+};
+
+/**
+ * Set post-json hook
+ */
+const postJson = {
+  _hook: null,
+  get: function () {
+    return postJson._hook;
+  },
+  set: function (fn) {
+    assert.ok(isFunction(fn), 'post-json hook must be a function');
+    postJson._hook = promisify(fn);
+
+    if (preJson._hook) {
+      sendJson = function (res, data) {
+        preJson._hook(data).then(() => {
+          _sendJson(res, data);
+          postJson._hook(data);
+        });
+      };
+    } else {
+      sendJson = function (res, data) {
+        _sendJson(res, data);
+        postJson._hook(data);
+      };
+    }
+  },
+};
+
+/**
+ * Set pre-error hook
+ */
+const preError = {
+  _hook: null,
+  get: function () {
+    return preError._hook;
+  },
+  set: function (fn) {
+    assert.ok(isFunction(fn), 'pre-error hook must be a function');
+    preError._hook = promisify(fn);
+
+    if (postError._hook) {
+      sendError = function (res, err) {
+        preError._hook(err).then(() => {
+          _sendError(res, err);
+          postError._hook(err);
+        });
+      };
+    } else {
+      sendError = function (res, err) {
+        preError._hook(err).then(() => _sendError(res, err));
+      };
+    }
+  },
+};
+
+/**
+ * Set post-error hook
+ */
+const postError = {
+  _hook: null,
+  get: function () {
+    return postError._hook;
+  },
+  set: function (fn) {
+    assert.ok(isFunction(fn), 'post-error hook must be a function');
+    postError._hook = promisify(fn);
+
+    if (preError._hook) {
+      sendError = function (res, err) {
+        preError._hook(err).then(() => {
+          _sendError(res, err);
+          postError._hook(err);
+        });
+      };
+    } else {
+      sendError = function (res, err) {
+        _sendError(res, err);
+        postError._hook(err);
+      };
+    }
+  },
 };
 
 /**
@@ -120,5 +234,17 @@ module.exports = {
   handlePromise,
   set errorMessageProvider(fn) {
     errorMessageProvider.set(fn);
+  },
+  set preJson(fn) {
+    preJson.set(fn);
+  },
+  set postJson(fn) {
+    postJson.set(fn);
+  },
+  set preError(fn) {
+    preError.set(fn);
+  },
+  set postError(fn) {
+    postError.set(fn);
   },
 };

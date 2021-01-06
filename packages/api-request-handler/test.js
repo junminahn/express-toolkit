@@ -135,6 +135,94 @@ describe('Custom Error Message Provider', function () {
   });
 });
 
+describe('Pre Json hook', function () {
+  const key = 'pre-json-hook';
+  const status = 200;
+  const value = 'apple';
+
+  it(`should return ${value}`, function (done) {
+    let preData;
+
+    apiHandler.preJson = function (data) {
+      preData = data;
+    };
+
+    app.get(`/${key}`, handleResponse(fnApple));
+    axiosResult(axios.get(`${baseUrl}/${key}`), { status, value }, done).then(() => {
+      assert.strictEqual(value, preData);
+    });
+  });
+});
+
+describe('Pre Json hook with Post Json hook', function () {
+  const key = 'pre-post-json-hook';
+  const status = 200;
+  const value = 'apple';
+
+  it(`should return ${value}`, function (done) {
+    let preData;
+    let postData;
+
+    apiHandler.postJson = function (data) {
+      postData = data;
+    };
+
+    apiHandler.preJson = function (data) {
+      preData = data;
+    };
+
+    app.get(`/${key}`, handleResponse(fnApple));
+    axiosResult(axios.get(`${baseUrl}/${key}`), { status, value }, done).then(() => {
+      assert.strictEqual(value, preData);
+      assert.strictEqual(value, postData);
+    });
+  });
+});
+
+describe('Pre Error hook', function () {
+  const key = 'pre-error-hook';
+  const status = 422;
+  const value = 'error1';
+
+  it(`should return ${value}`, function (done) {
+    let preError;
+
+    apiHandler.preError = function (err) {
+      preError = err.message;
+    };
+
+    app.get(`/${key}`, handleResponse(fnError1));
+    axiosResult(axios.get(`${baseUrl}/${key}`), { status, value }, done).then(() => {
+      assert.strictEqual(value, preError);
+    });
+  });
+});
+
+describe('Pre Error hook with Post Error hook', function () {
+  const key = 'pre-post-error-hook';
+  const status = 422;
+  const value = 'error1';
+
+  it(`should return ${value}`, function (done) {
+    let preError;
+    let postError;
+
+    apiHandler.postError = function (err) {
+      postError = err.message;
+    };
+
+    apiHandler.preError = function (err) {
+      preError = err.message;
+    };
+
+    app.get(`/${key}`, handleResponse(fnError1));
+    axiosResult(axios.get(`${baseUrl}/${key}`), { status, value }, done).then(() => {
+      assert.strictEqual(value, preError);
+      assert.strictEqual(value, postError);
+    });
+  });
+});
+
 function fnApple() {
   return 'apple';
 }
