@@ -1,40 +1,51 @@
 {
-  "name": "api-request-handler",
-  "description": "API Request Handler",
-  "version": "0.4.1",
+  "name": "cache-mailer",
+  "description": "Simple email sender with handlebars, ejs",
+  "version": "0.5.1",
   "author": "Junmin Ahn",
   "license": "MIT",
   "keywords": [
-    "api",
-    "request",
-    "handler"
+    "simple",
+    "email",
+    "mailer",
+    "cache",
+    "handlebars",
+    "ejs"
   ],
   "main": "index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/junminahn/express-toolkit.git",
-    "directory": "packages/api-request-handler"
+    "directory": "packages/cache-mailer"
   },
   "bugs": {
     "url": "https://github.com/junminahn/express-toolkit/issues"
   },
   "scripts": {
-    "test": "mocha --exit test.js",
-    "sync-version": "node ../../scripts/sync-version.js --name=api-request-handler"
+    "test": "mocha --exit test.js"
   },
   "files": [
     "LICENSE",
     "HISTORY.md",
     "index.js",
-    "test.js"
+    "helpers.js"
   ],
   "engines": {
     "node": ">= 6.0.0"
   },
+  "dependencies": {
+    "html-to-text": "^7.0.0",
+    "nodemailer": "^6.5.0"
+  },
   "devDependencies": {
     "axios": "^0.21.1",
-    "client-errors": "0.9.2",
+    "ejs": "^3.1.6",
     "express": "^4.17.1",
+    "handlebars": "^4.7.7",
     "mocha": "^8.3.2"
+  },
+  "peerDependencies": {
+    "ejs": "^3.1.6",
+    "handlebars": "^4.7.7"
   }
 }
