@@ -38,7 +38,7 @@ jobs:
       - name: Start mongod as a Daemon
         run: |
           mkdir -p ~/mongo/data/db
-          mongod --fork --dbpath ~/mongo/data/db
+          mongod --fork --dbpath ~/mongo/data/db --logpath ~/mongo/mongod.log
 
       - name: Run unit tests
         run: |
