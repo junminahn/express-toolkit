@@ -1,9 +1,10 @@
 {
   "name": "express-mong",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "Mongoose wrapper to inject request object into mongoose Query, Document, and Hooks",
   "scripts": {
-    "test": "node test"
+    "test": "node test",
+    "sync-version": "node ../../scripts/sync-version.js --name=express-mong"
   },
   "keywords": [
     "mongoose",

@@ -4,6 +4,7 @@
  * MIT Licensed
  */
 const assert = require('assert');
+const { Response } = require('./responses');
 
 /**
  * Helper functions to identify specific types.
@@ -39,7 +40,11 @@ const errorMessageProvider = {
  * Send a JSON response with status 200.
  */
 const _sendJson = function (res, data) {
-  res.json(data);
+  if (data instanceof Response) {
+    res.status(data.statusCode).json(data.data);
+  } else {
+    res.json(data);
+  }
 };
 
 /**

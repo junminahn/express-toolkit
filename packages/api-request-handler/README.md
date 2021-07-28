@@ -32,7 +32,6 @@ $ npm install api-request-handler
 ```js
 const http = require('http');
 const express = require('express');
-const axios = require('axios');
 
 const apiHandler = require('api-request-handler');
 const baseUrl = 'http://localhost:8080';

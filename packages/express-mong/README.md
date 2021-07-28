@@ -76,7 +76,7 @@ testSchema.pre('find', function() {
 mongoose.model('Test', testSchema);
 
 app.get('/test', function(req, res, next) {
-  const Test = req.mong('Test');
+  const Test = req.mong.model('Test');
 
   const test = new Test({ name: 'test1' });
   test.save(function(err, doc) {

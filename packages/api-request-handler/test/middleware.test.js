@@ -1,12 +1,10 @@
 const http = require('http');
 const express = require('express');
-const axios = require('axios');
+const expect = require('chai').expect;
+const request = require('supertest');
 const { UnauthorizedError } = require('client-errors');
-const assert = require('assert');
 
-const apiHandler = require('./index');
-
-const baseUrl = 'http://localhost:8080';
+const apiHandler = require('../index');
 
 const { handleResponse } = apiHandler;
 
@@ -15,22 +13,15 @@ app.set('port', 8080);
 const server = http.createServer(app);
 server.listen(8080);
 
-const axiosResult = (axiosRequest, _, done) =>
-  axiosRequest
-    .then(res => ({
-      status: res.status,
-      value: res.data,
-    }))
-    .catch(err => ({
-      status: err.response.status,
-      value: err.response.data.message,
-    }))
-    .then(({ status, value }) => {
-      assert.strictEqual(status, status);
-      assert.strictEqual(value, value);
-    })
-    .then(done)
-    .catch(done);
+const hit = (url, status, value, done) =>
+  request(app)
+    .get(url)
+    .expect('Content-Type', /json/)
+    .expect(status)
+    .then(response => {
+      expect(status >= 400 ? response.body.message : response.body).to.equal(value);
+      done();
+    });
 
 describe('Single Middleware', function () {
   const key = 'single-middleware';
@@ -39,7 +30,7 @@ describe('Single Middleware', function () {
 
   it(`should return ${value}`, function (done) {
     app.get(`/${key}`, handleResponse(fnApple));
-    axiosResult(axios.get(`${baseUrl}/${key}`), { status, value }, done);
+    hit(`/${key}`, status, value, done);
   });
 });
 
@@ -50,7 +41,7 @@ describe('Multiple Middlewares', function () {
 
   it(`should return ${value}`, function (done) {
     app.get(`/${key}`, handleResponse(fnAppleNext, fnPear));
-    axiosResult(axios.get(`${baseUrl}/${key}`), { status, value }, done);
+    hit(`/${key}`, status, value, done);
   });
 });
 
@@ -61,7 +52,7 @@ describe('Multiple Middlewares Array', function () {
 
   it(`should return ${value}`, function (done) {
     app.get(`/${key}`, handleResponse([fnAppleNext, fnPear]));
-    axiosResult(axios.get(`${baseUrl}/${key}`), { status, value }, done);
+    hit(`/${key}`, status, value, done);
   });
 });
 
@@ -72,7 +63,7 @@ describe('Multiple Async Middlewares', function () {
 
   it(`should return ${value}`, function (done) {
     app.get(`/${key}`, handleResponse(fnAppleNext, fnPearPromise));
-    axiosResult(axios.get(`${baseUrl}/${key}`), { status, value }, done);
+    hit(`/${key}`, status, value, done);
   });
 });
 
@@ -83,7 +74,7 @@ describe('Error Handling', function () {
 
   it(`should return ${value}`, function (done) {
     app.get(`/${key}`, handleResponse(fnAppleNext, fnError1, fnPear));
-    axiosResult(axios.get(`${baseUrl}/${key}`), { status, value }, done);
+    hit(`/${key}`, status, value, done);
   });
 });
 
@@ -94,7 +85,7 @@ describe('Async Error Handling', function () {
 
   it(`should return ${value}`, function (done) {
     app.get(`/${key}`, handleResponse(fnAppleNext, fnError1Promise, fnPear));
-    axiosResult(axios.get(`${baseUrl}/${key}`), { status, value }, done);
+    hit(`/${key}`, status, value, done);
   });
 });
 
@@ -105,7 +96,7 @@ describe('Multiple Async Error Handling', function () {
 
   it(`should return ${value}`, function (done) {
     app.get(`/${key}`, handleResponse(fnError2Next, fnError1));
-    axiosResult(axios.get(`${baseUrl}/${key}`), { status, value }, done);
+    hit(`/${key}`, status, value, done);
   });
 });
 
@@ -116,22 +107,7 @@ describe('Custom Client Error Handling', function () {
 
   it(`should return ${value}`, function (done) {
     app.get(`/${key}`, handleResponse(fnClientError));
-    axiosResult(axios.get(`${baseUrl}/${key}`), { status, value }, done);
-  });
-});
-
-describe('Custom Error Message Provider', function () {
-  const key = 'custom-error-message-provider';
-  const status = 422;
-  const value = 'customError';
-
-  it(`should return ${value}`, function (done) {
-    apiHandler.errorMessageProvider = function () {
-      return 'customError';
-    };
-
-    app.get(`/${key}`, handleResponse(fnError1));
-    axiosResult(axios.get(`${baseUrl}/${key}`), { status, value }, done);
+    hit(`/${key}`, status, value, done);
   });
 });
 
@@ -148,8 +124,8 @@ describe('Pre Json hook', function () {
     };
 
     app.get(`/${key}`, handleResponse(fnApple));
-    axiosResult(axios.get(`${baseUrl}/${key}`), { status, value }, done).then(() => {
-      assert.strictEqual(value, preData);
+    hit(`/${key}`, status, value, done).then(() => {
+      expect(value).to.equal(preData);
     });
   });
 });
@@ -172,9 +148,9 @@ describe('Pre Json hook with Post Json hook', function () {
     };
 
     app.get(`/${key}`, handleResponse(fnApple));
-    axiosResult(axios.get(`${baseUrl}/${key}`), { status, value }, done).then(() => {
-      assert.strictEqual(value, preData);
-      assert.strictEqual(value, postData);
+    hit(`/${key}`, status, value, done).then(() => {
+      expect(value).to.equal(preData);
+      expect(value).to.equal(postData);
     });
   });
 });
@@ -192,8 +168,8 @@ describe('Pre Error hook', function () {
     };
 
     app.get(`/${key}`, handleResponse(fnError1));
-    axiosResult(axios.get(`${baseUrl}/${key}`), { status, value }, done).then(() => {
-      assert.strictEqual(value, preError);
+    hit(`/${key}`, status, value, done).then(() => {
+      expect(value).to.equal(preError);
     });
   });
 });
@@ -216,10 +192,25 @@ describe('Pre Error hook with Post Error hook', function () {
     };
 
     app.get(`/${key}`, handleResponse(fnError1));
-    axiosResult(axios.get(`${baseUrl}/${key}`), { status, value }, done).then(() => {
-      assert.strictEqual(value, preError);
-      assert.strictEqual(value, postError);
+    hit(`/${key}`, status, value, done).then(() => {
+      expect(value).to.equal(preError);
+      expect(value).to.equal(postError);
     });
+  });
+});
+
+describe('Custom Error Message Provider', function () {
+  const key = 'custom-error-message-provider';
+  const status = 422;
+  const value = 'customError';
+
+  it(`should return ${value}`, function (done) {
+    apiHandler.errorMessageProvider = function () {
+      return 'customError';
+    };
+
+    app.get(`/${key}`, handleResponse(fnError1));
+    hit(`/${key}`, status, value, done);
   });
 });
 
