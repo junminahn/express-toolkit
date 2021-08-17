@@ -28,7 +28,7 @@ router
 router.get(
   '/next',
   (req, res, next) => next(),
-  () => 'next-test'
+  () => 'next-test',
 );
 
 router.get('/unauthorized-error', () => {

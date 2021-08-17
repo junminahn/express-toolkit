@@ -18,7 +18,7 @@ const hit = (url, status, value, done) =>
     .get(url)
     .expect('Content-Type', /json/)
     .expect(status)
-    .then(response => {
+    .then((response) => {
       expect(status >= 400 ? response.body.message : response.body).to.equal(value);
       done();
     });

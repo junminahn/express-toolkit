@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "target": "ES2016",
+    "rootDir": "src",
+    "outDir": "lib",
+    "noImplicitAny": false,
+    "esModuleInterop": true,
+    "moduleResolution": "node"
+  },
+  "include": ["src"]
+}

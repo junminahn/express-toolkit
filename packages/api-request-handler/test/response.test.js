@@ -28,7 +28,7 @@ const hit = (url, status, value, done) =>
   request(app)
     .get(url)
     .expect(status)
-    .then(response => {
+    .then((response) => {
       if (status === 204) {
         expect(response.headers['content-type']).to.be.undefined;
         expect(response.body).to.be.empty;
@@ -45,7 +45,7 @@ describe('Successful responses', function () {
     const status = 200;
     app.get(
       `/${status}`,
-      handleResponse(() => new OK(status))
+      handleResponse(() => new OK(status)),
     );
 
     hit(`/${status}`, status, status, done);
@@ -55,7 +55,7 @@ describe('Successful responses', function () {
     const status = 201;
     app.get(
       `/${status}`,
-      handleResponse(() => new Created(status))
+      handleResponse(() => new Created(status)),
     );
 
     hit(`/${status}`, status, status, done);
@@ -65,7 +65,7 @@ describe('Successful responses', function () {
     const status = 202;
     app.get(
       `/${status}`,
-      handleResponse(() => new Accepted(status))
+      handleResponse(() => new Accepted(status)),
     );
 
     hit(`/${status}`, status, status, done);
@@ -75,7 +75,7 @@ describe('Successful responses', function () {
     const status = 203;
     app.get(
       `/${status}`,
-      handleResponse(() => new NonAuthoritativeInfo(status))
+      handleResponse(() => new NonAuthoritativeInfo(status)),
     );
 
     hit(`/${status}`, status, status, done);
@@ -85,7 +85,7 @@ describe('Successful responses', function () {
     const status = 204;
     app.get(
       `/${status}`,
-      handleResponse(() => new NoContent(''))
+      handleResponse(() => new NoContent('')),
     );
 
     hit(`/${status}`, status, status, done);
@@ -95,7 +95,7 @@ describe('Successful responses', function () {
     const status = 205;
     app.get(
       `/${status}`,
-      handleResponse(() => new ResetContent(status))
+      handleResponse(() => new ResetContent(status)),
     );
 
     hit(`/${status}`, status, status, done);
@@ -105,7 +105,7 @@ describe('Successful responses', function () {
     const status = 206;
     app.get(
       `/${status}`,
-      handleResponse(() => new PartialContent(status))
+      handleResponse(() => new PartialContent(status)),
     );
 
     hit(`/${status}`, status, status, done);
@@ -115,7 +115,7 @@ describe('Successful responses', function () {
     const status = 207;
     app.get(
       `/${status}`,
-      handleResponse(() => new MultiStatus(status))
+      handleResponse(() => new MultiStatus(status)),
     );
 
     hit(`/${status}`, status, status, done);
@@ -125,7 +125,7 @@ describe('Successful responses', function () {
     const status = 208;
     app.get(
       `/${status}`,
-      handleResponse(() => new AlreadyReported(status))
+      handleResponse(() => new AlreadyReported(status)),
     );
 
     hit(`/${status}`, status, status, done);
@@ -135,7 +135,7 @@ describe('Successful responses', function () {
     const status = 226;
     app.get(
       `/${status}`,
-      handleResponse(() => new IMUsed(status))
+      handleResponse(() => new IMUsed(status)),
     );
 
     hit(`/${status}`, status, status, done);

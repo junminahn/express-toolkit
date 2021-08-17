@@ -9,9 +9,9 @@ const { Response } = require('./responses');
 /**
  * Helper functions to identify specific types.
  */
-const isFunction = fn => typeof fn === 'function';
-const isPromise = p => p && isFunction(p.then);
-const promisify = p => (isPromise(p) ? p : a => Promise.resolve(p(a)));
+const isFunction = (fn) => typeof fn === 'function';
+const isPromise = (p) => p && isFunction(p.then);
+const promisify = (p) => (isPromise(p) ? p : (a) => Promise.resolve(p(a)));
 const { isArray } = Array;
 
 /**

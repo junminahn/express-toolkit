@@ -38,7 +38,7 @@ function promiseReturnTest(req, res) {
   const Test2 = mong.model('Test2');
 
   // count
-  const zeroCount = count => testEqual('count', count, 0);
+  const zeroCount = (count) => testEqual('count', count, 0);
 
   Test.create({ name: 'test1', timestamp }).then(() => {
     return (
@@ -76,7 +76,7 @@ function promiseReturnTest(req, res) {
         .then(() => Test.count({ name: 'test9', timestamp }).then(zeroCount))
         // remove
         .then(() => Test.create({ name: 'test10', timestamp }))
-        .then(doc => doc.remove())
+        .then((doc) => doc.remove())
         .then(() => Test.count({ name: 'test10', timestamp }).then(zeroCount))
         // new document
         .then(() => {
@@ -85,21 +85,21 @@ function promiseReturnTest(req, res) {
         })
         // aggregate
         .then(() => Test.aggregate([{ $match: { name: 'test11', timestamp } }]))
-        .then(output => testEqual('aggregate', output[0].name, 'test11'))
+        .then((output) => testEqual('aggregate', output[0].name, 'test11'))
         // populate
         .then(() => {
           return Test2.create({ name: 'sub1' })
-            .then(sub1 => {
+            .then((sub1) => {
               return Test.create({ name: 'test12', ref: sub1, timestamp });
             })
             .then(() => Test.findOne({ name: 'test12', timestamp }).populate('ref'))
-            .then(doc => {
+            .then((doc) => {
               testEqual('doc populated', doc.ref.name, 'sub1');
               return doc;
             });
         })
         // static, method
-        .then(doc => {
+        .then((doc) => {
           Test.static1(timestamp);
           doc.method1();
           const toObjectResult = doc.toObject();
@@ -108,17 +108,17 @@ function promiseReturnTest(req, res) {
         })
         // decorate
         .then(() => {
-          return Test.findOne({ name: 'test12', timestamp }).then(doc => {
+          return Test.findOne({ name: 'test12', timestamp }).then((doc) => {
             testEqual('doc decorated', doc.$tag, 'test');
           });
         })
         .then(() => {
-          return Test.findOne({ name: 'test12', timestamp }).then(doc => {
+          return Test.findOne({ name: 'test12', timestamp }).then((doc) => {
             testEqual('doc original', doc.$original.name, 'test12');
           });
         })
-        .then(doc => res.send('done'))
-        .catch(err => console.error(err))
+        .then((doc) => res.send('done'))
+        .catch((err) => console.error(err))
     );
   });
 }
@@ -150,12 +150,12 @@ function auditTest(req, res) {
   const Test = mong.model('Test');
   req.user = new User();
 
-  Test.create({ name: 'test1', timestamp }).then(doc => {
+  Test.create({ name: 'test1', timestamp }).then((doc) => {
     testEqual('audit created by', doc.createdBy.toString(), req.user._id.toString());
     testEqual('audit updated at', doc.updatedAt.getTime(), doc.createdAt.getTime());
 
     doc.name = 'test2';
-    doc.save().then(doc => {
+    doc.save().then((doc) => {
       testEqual('audit updated by', doc.updatedBy.toString(), req.user._id.toString());
       testNotEqual('audit updated at', doc.updatedAt.getTime(), doc.createdAt.getTime());
 
@@ -173,7 +173,7 @@ mongoose.connection.dropDatabase().then(() => {
     getAPI(CALLBACK_TEST_API).then(() =>
       getAPI(AUDIT_TEST_API).then(() => {
         process.exit();
-      })
-    )
+      }),
+    ),
   );
 });

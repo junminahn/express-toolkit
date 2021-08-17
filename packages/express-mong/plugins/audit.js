@@ -10,7 +10,7 @@ module.exports = function audit(
     updatedBy = 'updatedBy',
     createdAt = 'createdAt',
     updatedAt = 'updatedAt',
-  } = {}
+  } = {},
 ) {
   const _createdBy = createdBy !== false && createdBy !== null;
   const _updatedBy = updatedBy !== false && updatedBy !== null;

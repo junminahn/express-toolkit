@@ -12,7 +12,7 @@ if (!name) {
   process.exit(1);
 }
 
-const parseJson = dir => {
+const parseJson = (dir) => {
   const content = fse.readFileSync(dir).toString('utf-8');
   return JSON.parse(content);
 };
@@ -34,13 +34,13 @@ const workspacePackages = rootPackageJson.workspaces.packages || [];
 const targetName = packageJson.name;
 const targetVersion = packageJson.version;
 
-workspacePackages.forEach(dir => {
+workspacePackages.forEach((dir) => {
   glob(`${repoRoot}${dir}/package.json`, null, (er, files) => {
-    files.forEach(file => {
+    files.forEach((file) => {
       const pjson = parseJson(file);
       let updated = false;
 
-      ['dependencies', 'devDependencies', 'peerDependencies'].forEach(type => {
+      ['dependencies', 'devDependencies', 'peerDependencies'].forEach((type) => {
         if (!pjson[type]) return;
         if (!pjson[type][targetName]) return;
 

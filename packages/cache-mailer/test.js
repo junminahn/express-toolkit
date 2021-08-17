@@ -29,14 +29,14 @@ const sender = '"Test" <admin@test.com>';
 describe('Create Test Account', function () {
   this.timeout(5000);
   it(`should create a test1 account`, function (done) {
-    nodemailer.createTestAccount().then(account => {
+    nodemailer.createTestAccount().then((account) => {
       testAccount1 = account;
       done();
     });
   });
 
   it(`should create a test2 account`, function (done) {
-    nodemailer.createTestAccount().then(account => {
+    nodemailer.createTestAccount().then((account) => {
       testAccount2 = account;
       done();
     });
@@ -96,7 +96,7 @@ describe('Register Template', function () {
           subject: 'request path',
         },
       ])
-      .then(templates => {
+      .then((templates) => {
         const ass = assert.equal(_template, templates[0].template);
         done(ass);
       });
@@ -113,7 +113,7 @@ describe('Send Email', function () {
         receiver,
         sender,
       })
-      .then(info => {
+      .then((info) => {
         assert.equal(info.accepted[0], receiver);
         done();
       });
@@ -127,7 +127,7 @@ describe('Send Email', function () {
         receiver,
         sender,
       })
-      .then(info => {
+      .then((info) => {
         assert.equal(info.accepted[0], receiver);
         done();
       });
@@ -158,7 +158,7 @@ describe('Send Email with Interpolated HTML', function () {
         receiver,
         sender,
       })
-      .then(info => {
+      .then((info) => {
         assert.equal(info.text, 'apple');
         done();
       });
@@ -173,7 +173,7 @@ describe('Send Email with Interpolated HTML', function () {
         receiver,
         sender,
       })
-      .then(info => {
+      .then((info) => {
         assert.equal(info.text, 'apple');
         done();
       });
@@ -191,7 +191,7 @@ describe('Send Email with Local Data', function () {
         receiver,
         sender,
       })
-      .then(info => {
+      .then((info) => {
         assert.equal(info.text, 'apple');
         done();
       });
@@ -237,7 +237,7 @@ describe('Create Express middleware and Bind to request', function () {
           user: testAccount1.user,
           pass: testAccount1.pass,
         },
-      })
+      }),
     );
     done();
   });
@@ -256,7 +256,7 @@ describe('Send Email with Request Data', function () {
           receiver,
           sender,
         })
-        .then(info => {
+        .then((info) => {
           assert.equal(info.text, path);
           done();
         });
@@ -293,7 +293,7 @@ describe('Register Template with Cache', function () {
         receiver,
         sender,
       })
-      .then(info => {
+      .then((info) => {
         assert.equal(info.text, 'Hello kitty Again!');
         done();
       });
@@ -324,7 +324,7 @@ describe('Register Template with Value Function', function () {
         receiver,
         sender,
       })
-      .then(info => {
+      .then((info) => {
         assert.equal(info.text, 'I am a cat');
         done();
       });
@@ -356,7 +356,7 @@ describe('Register Template with Value Template Path', function () {
         receiver,
         sender,
       })
-      .then(info => {
+      .then((info) => {
         assert.equal(info.text, 'which banana');
         done();
       });
@@ -388,7 +388,7 @@ describe('Register ejs Template', function () {
         receiver,
         sender,
       })
-      .then(info => {
+      .then((info) => {
         assert.equal(info.text, 'hi ejs');
         done();
       });

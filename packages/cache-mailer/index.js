@@ -21,7 +21,7 @@ const _cached = Object.create(null);
 const _options = Object.create(null);
 
 const defaultTemplateEngine = {
-  compile: v => () => v,
+  compile: (v) => () => v,
 };
 
 /**
@@ -83,11 +83,11 @@ const getTemplate = function ({ template, templatePath, subject, valueFn, templa
 
   const templateProm = template
     ? Promise.resolve(template)
-    : readFileAsync(templatePath).catch(err => {
+    : readFileAsync(templatePath).catch((err) => {
         return 'no template';
       });
 
-  return templateProm.then(template => {
+  return templateProm.then((template) => {
     return {
       subject: engine.compile(subject, { filename: templatePath }),
       html: engine.compile(template, { filename: templatePath }),
@@ -157,7 +157,7 @@ const sendEmail = function ({ key, data, receiver, sender, extraData }) {
     templateProm = getTemplate(_templates[key]);
   }
 
-  return templateProm.then(template => {
+  return templateProm.then((template) => {
     if (!template) throw new Error(`email template ${key} is not registered!`);
 
     const locals = Object.assign({}, { receiver, sender }, _locals, data, extraData);
@@ -236,7 +236,7 @@ setOptions({
 /**
  * Derive extra data from Express app and request data.
  */
-const getRequestData = req => {
+const getRequestData = (req) => {
   return {
     app: req.app.locals,
     req: {

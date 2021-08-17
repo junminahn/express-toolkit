@@ -50,14 +50,14 @@ const _decorateResult = function (req, result, { decorator, keepOriginal }) {
       if (decorator) {
         const decoratorAsync = _toAsyncFn(decorator);
         return Promise.all(
-          result.map(rst => {
+          result.map((rst) => {
             _setDocument(req, rst, keepOriginal);
             return decoratorAsync.call(rst, req);
-          })
+          }),
         );
       }
 
-      return result.map(rst => _setDocument(req, rst, keepOriginal));
+      return result.map((rst) => _setDocument(req, rst, keepOriginal));
     }
 
     return result;
@@ -88,18 +88,18 @@ const _decorateMethod = function (req, queryOrAggregate, { decorator, keepOrigin
     if (_isFunction(callback)) {
       _exec
         .apply(queryOrAggregate)
-        .then(result => {
+        .then((result) => {
           return _decorateResult(req, result, { decorator, keepOriginal });
           //
           // const res = _decorateResult(req, result, { decorator, keepOriginal });
           // callback(null, res);
         })
         .then(
-          res => callback(null, res),
-          err => callback(err)
+          (res) => callback(null, res),
+          (err) => callback(err),
         );
     } else {
-      return _exec.apply(queryOrAggregate).then(result => {
+      return _exec.apply(queryOrAggregate).then((result) => {
         return _decorateResult(req, result, { decorator, keepOriginal });
       });
     }
@@ -123,17 +123,17 @@ function modelWrapper(req, model, { decorator, keepOriginal }) {
 
   MongModel._model = model;
 
-  modelProperties.forEach(property => (MongModel[property] = model[property]));
+  modelProperties.forEach((property) => (MongModel[property] = model[property]));
 
-  modelMethods.forEach(m => {
+  modelMethods.forEach((m) => {
     MongModel[m] = function () {
       const callback = [].pop.call(arguments);
 
       if (_isFunction(callback)) {
         const q = model[m](...arguments);
         _decorateMethod(req, q, { decorator, keepOriginal }).then(
-          res => callback(null, res),
-          err => callback(err)
+          (res) => callback(null, res),
+          (err) => callback(err),
         );
       } else {
         const q = model[m](...arguments, callback);
@@ -147,7 +147,7 @@ function modelWrapper(req, model, { decorator, keepOriginal }) {
   //////////////////////////////////
   // Wrap Static Methods / Values //
   //////////////////////////////////
-  Object.keys(model.schema.statics).forEach(s => {
+  Object.keys(model.schema.statics).forEach((s) => {
     const ms = model[s];
     if (_isFunction(ms)) {
       MongModel[s] = function () {
