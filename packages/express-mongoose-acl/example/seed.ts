@@ -27,6 +27,7 @@ export const seed = async () => {
   const user2 = await User.create({
     name: 'user2',
     role: 'user',
+    public: true,
     statusHistory: [
       { name: 'status1', approved: true, document: document1 },
       { name: 'status2', approved: false },
@@ -37,5 +38,11 @@ export const seed = async () => {
     orgs: [org1],
   });
 
-  return { user1, user2, org1, org2 };
+  const user3 = await User.create({
+    name: 'user3',
+    role: 'user',
+    public: true,
+  });
+
+  return { user1, user2, user3, org1, org2 };
 };

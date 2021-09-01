@@ -9,9 +9,11 @@ const userRouter = new ModelRouter('User', {
   baseUrl: null,
   permissionSchema: {
     name: { list: true, read: true },
-    role: { list: false, read: true },
+    role: { list: true, read: true },
     statusHistory: {
-      list: false,
+      list: (permissions) => {
+        return permissions.isAdmin;
+      },
       read: (permissions) => {
         return permissions.isAdmin;
       },
@@ -20,19 +22,20 @@ const userRouter = new ModelRouter('User', {
   },
   docPermissions: function (doc, permissions) {
     const p = {
-      'edit.status': false,
-      'edit.name': false,
+      'edit.name': permissions.isAdmin,
+      'edit.status': permissions.isAdmin,
     };
 
-    if (permissions.isAdmin) {
-      p['edit.status'] = true;
+    if (String(doc._id) === String(permissions.userId)) {
+      p['edit.name'] = true;
     }
 
     return p;
   },
   baseQuery: {
-    list: () => {
-      return {};
+    list: (permissions) => {
+      if (permissions.isAdmin) return {};
+      else return { $or: [{ _id: permissions.userId }, { public: true }] };
     },
     read: (permissions) => {
       if (permissions.isAdmin) return {};
@@ -47,7 +50,7 @@ const userRouter = new ModelRouter('User', {
       else return { _id: permissions.userId };
     },
   },
-  decorator: {
+  decorate: {
     update: function (doc) {
       return doc;
     },

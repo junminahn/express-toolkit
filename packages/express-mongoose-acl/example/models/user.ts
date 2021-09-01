@@ -17,6 +17,7 @@ const UserSchema = new mongoose.Schema({
   role: { type: String, enum: ['admin', 'user'] },
   statusHistory: { type: [Status], default: [] },
   orgs: [{ type: 'ObjectId', ref: 'Org' }],
+  public: { type: Boolean, default: false },
 });
 
 export default mongoose.model('User', UserSchema);

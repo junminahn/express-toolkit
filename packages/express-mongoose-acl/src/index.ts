@@ -63,7 +63,12 @@ class ModelRouter {
       ]);
 
       let docs = await this.model.find({ query, select, ...pagination });
-      docs = await Promise.all(docs.map((doc) => req._decorate(this.modelName, doc, 'list')));
+      docs = await Promise.all(
+        docs.map(async (doc) => {
+          doc = await req._permit(this.modelName, doc, 'list');
+          return req._decorate(this.modelName, doc, 'list');
+        }),
+      );
 
       return docs;
     });
@@ -86,7 +91,12 @@ class ModelRouter {
       if (select) populate = populate.filter((p) => select.includes(p.path));
 
       let docs = await this.model.find({ query, select, sort, populate, ...pagination });
-      docs = await Promise.all(docs.map((doc) => req._decorate(this.modelName, doc, 'list')));
+      docs = await Promise.all(
+        docs.map(async (doc) => {
+          doc = await req._permit(this.modelName, doc, 'list');
+          return req._decorate(this.modelName, doc, 'list');
+        }),
+      );
 
       return docs;
     });
@@ -95,13 +105,26 @@ class ModelRouter {
     // CREATE //
     ////////////
     this.router.post(`${this.basename}`, setGenerators, async (req, res) => {
-      let docs = await this.model.create(req.body);
+      const isArr = Array.isArray(req.body);
+      let arr = isArr ? req.body : [req.body];
 
-      docs = Array.isArray(docs)
-        ? await Promise.all(docs.map((doc) => req._decorate(this.modelName, doc, 'create', true)))
-        : await req._decorate(this.modelName, docs, 'create', true);
+      const items = await Promise.all(
+        arr.map(async (item) => {
+          const data = await req._prepare(this.modelName, item, 'create');
+          const allowedFields = await req._genCreatableFields(this.modelName, data);
+          return pick(data, allowedFields);
+        }),
+      );
 
-      res.status(201).json(docs);
+      let docs = await this.model.create(items);
+      docs = await Promise.all(
+        docs.map(async (doc) => {
+          doc = await req._permit(this.modelName, doc, 'create');
+          return req._decorate(this.modelName, doc, 'create');
+        }),
+      );
+
+      res.status(201).json(isArr ? items : items[0]);
     });
 
     /////////////////
@@ -140,7 +163,11 @@ class ModelRouter {
         doc = await this.model.findOne({ query, select });
       }
 
-      if (doc) doc = await req._decorate(this.modelName, doc, 'read');
+      if (doc) {
+        doc = await req._permit(this.modelName, doc, 'read');
+        doc = await req._decorate(this.modelName, doc, 'read');
+      }
+
       return doc;
     });
 
@@ -171,7 +198,10 @@ class ModelRouter {
         doc = await this.model.findOne({ query, select, populate });
       }
 
-      if (doc) doc = await req._decorate(this.modelName, doc, 'read');
+      if (doc) {
+        doc = await req._permit(this.modelName, doc, 'read');
+        doc = await req._decorate(this.modelName, doc, 'read');
+      }
 
       return doc;
     });
@@ -185,11 +215,13 @@ class ModelRouter {
       let doc = await this.model.findOne({ query });
       if (!doc) throw new clientErrors.UnauthorizedError();
 
-      doc = await req._setDocPermissions(this.modelName, doc);
+      doc = await req._permit(this.modelName, doc, 'update');
+      const data = await req._prepare(this.modelName, req.body, 'update');
       const allowedFields = await req._genEditableFields(this.modelName, doc);
 
-      Object.assign(doc, pick(req.body, allowedFields));
+      Object.assign(doc, pick(data, allowedFields));
 
+      doc = await req._transform(this.modelName, doc, 'update');
       doc = await doc.save();
       doc = await req._decorate(this.modelName, doc, 'update', true);
 

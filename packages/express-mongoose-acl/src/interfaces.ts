@@ -5,7 +5,7 @@ export interface ModelRouterProps {
   permissionField?: string;
   docPermissions?: Function;
   baseQuery?: any;
-  decorator?: any;
+  decorate?: any;
 }
 
 export interface Populate {
