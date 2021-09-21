@@ -11,7 +11,7 @@
     "dev": "tsc -w",
     "example": "nodemon --trace-warnings",
     "lint": "git ls-files '*.js' '*.ts' | xargs yarn eslint",
-    "test": "mocha -r ts-node/register test/**/test.ts --exit"
+    "test": "mocha -r ts-node/register test/**/*.spec.ts --exit"
   },
   "dependencies": {
     "express-json-router": "0.2.0",

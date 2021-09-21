@@ -2,26 +2,7 @@ import request from 'supertest';
 import { expect } from 'chai';
 import 'mocha';
 
-import initExpresss from '../example/express-server';
-import { down, dropDatabase } from '../example/db';
-import { seed } from '../example/seed';
-
-const DATABASE_URL = 'mongodb://localhost:27017/acl-test';
-
-let app = null;
-let seedDocuments: { user1: any; user2: any; user3: any; org1: any; org2: any } = {
-  user1: {},
-  user2: {},
-  user3: {},
-  org1: {},
-  org2: {},
-};
-
-before(async function () {
-  app = await initExpresss({ databaseUrl: DATABASE_URL });
-  await dropDatabase();
-  seedDocuments = await seed();
-});
+import { app, seedDocuments } from './0.setup.spec';
 
 // describe('Create Route', async () => {
 //   it('should create an user', (done) => {
@@ -212,6 +193,6 @@ describe('Read Route', async () => {
 //   });
 // });
 
-after(async function () {
-  await down({ dropDatabase: true });
-});
+// after(async function () {
+//   await down({ dropDatabase: true });
+// });

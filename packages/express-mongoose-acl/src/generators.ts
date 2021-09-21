@@ -174,6 +174,17 @@ export async function decorate(modelName, doc, access, pickFields) {
   return doc;
 }
 
+export async function decorateAll(modelName, docsObject, access) {
+  const decorateAll = getModelOption(modelName, `decorateAll.${access}`, null);
+
+  if (isFunction(decorateAll)) {
+    const permissions = this[PERMISSIONS];
+    docsObject = await decorateAll.call(this, docsObject, permissions);
+  }
+
+  return docsObject;
+}
+
 export function getPermissions() {
   const permissionField = getOption('permissionField');
   return this[permissionField] || {};
@@ -190,6 +201,7 @@ export function setGenerators(req, res, next) {
   req._transform = transform.bind(req);
   req._permit = permit.bind(req);
   req._decorate = decorate.bind(req);
+  req._decorateAll = decorateAll.bind(req);
   req._getPermissions = getPermissions.bind(req);
   req[PERMISSIONS] = req._getPermissions();
   next();

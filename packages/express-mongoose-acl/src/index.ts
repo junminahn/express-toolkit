@@ -70,7 +70,7 @@ class ModelRouter {
         }),
       );
 
-      return docs;
+      return req._decorateAll(this.modelName, docs, 'list');
     });
 
     //////////////////
@@ -98,7 +98,7 @@ class ModelRouter {
         }),
       );
 
-      return docs;
+      return req._decorateAll(this.modelName, docs, 'list');
     });
 
     ////////////
