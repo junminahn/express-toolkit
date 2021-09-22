@@ -62,6 +62,8 @@ class ModelRouter {
         req._genPagination({ limit, page }, this.options.listHardLimit),
       ]);
 
+      if (query === false) return [];
+
       let docs = await this.model.find({ query, select, ...pagination });
       docs = await Promise.all(
         docs.map(async (doc) => {
@@ -86,6 +88,8 @@ class ModelRouter {
         req._genPopulate(this.modelName, 'read', populate),
         req._genPagination({ limit, page }, this.options.listHardLimit),
       ]);
+
+      if (query === false) return [];
 
       // prevent populate paths from updating query select fields
       if (select) populate = populate.filter((p) => select.includes(p.path));
@@ -151,6 +155,8 @@ class ModelRouter {
         req._genSelect(this.modelName, 'read'),
       ]);
 
+      if (query === false) return null;
+
       let doc = await this.model.findOne({ query, select });
 
       // if not found, try to get the doc with 'list' access
@@ -163,10 +169,10 @@ class ModelRouter {
         doc = await this.model.findOne({ query, select });
       }
 
-      if (doc) {
-        doc = await req._permit(this.modelName, doc, 'read');
-        doc = await req._decorate(this.modelName, doc, 'read');
-      }
+      if (!doc) return null;
+
+      doc = await req._permit(this.modelName, doc, 'read');
+      doc = await req._decorate(this.modelName, doc, 'read');
 
       return doc;
     });
@@ -186,6 +192,8 @@ class ModelRouter {
         req._genPopulate(this.modelName, 'read', populate),
       ]);
 
+      if (query === false) return null;
+
       let doc = await this.model.findOne({ query, select, populate });
 
       // if not found, try to get the doc with 'list' access
@@ -198,10 +206,10 @@ class ModelRouter {
         doc = await this.model.findOne({ query, select, populate });
       }
 
-      if (doc) {
-        doc = await req._permit(this.modelName, doc, 'read');
-        doc = await req._decorate(this.modelName, doc, 'read');
-      }
+      if (!doc) return null;
+
+      doc = await req._permit(this.modelName, doc, 'read');
+      doc = await req._decorate(this.modelName, doc, 'read');
 
       return doc;
     });
@@ -212,8 +220,10 @@ class ModelRouter {
     this.router.put(`${this.basename}/:id`, setGenerators, async (req, res) => {
       const { id } = req.params;
       let query = await req._genQuery(this.modelName, 'update', { _id: id });
+      if (query === false) return null;
+
       let doc = await this.model.findOne({ query });
-      if (!doc) throw new clientErrors.UnauthorizedError();
+      if (!doc) return null;
 
       doc = await req._permit(this.modelName, doc, 'update');
       const data = await req._prepare(this.modelName, req.body, 'update');
@@ -234,8 +244,10 @@ class ModelRouter {
     this.router.delete(`${this.basename}/:id`, setGenerators, async (req, res) => {
       const { id } = req.params;
       let query = await req._genQuery(this.modelName, 'delete', { _id: id });
+      if (query === false) return null;
+
       let doc = await this.model.findOneAndRemove(query);
-      if (!doc) throw new clientErrors.UnauthorizedError();
+      if (!doc) return null;
 
       return true;
     });

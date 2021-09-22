@@ -6,6 +6,8 @@ export interface ModelRouterProps {
   docPermissions?: Function;
   baseQuery?: any;
   decorate?: any;
+  prepare?: any;
+  transform?: any;
 }
 
 export interface Populate {

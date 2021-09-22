@@ -21,6 +21,7 @@ export async function genQuery(modelName, access = 'read', _query) {
   const permissions = this[PERMISSIONS];
 
   const baseQuery = await baseQueryFn.call(this, permissions);
+  if (baseQuery === false) return false;
   if (isEmpty(baseQuery)) return _query;
   if (!_query) return baseQuery;
 
