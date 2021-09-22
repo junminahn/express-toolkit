@@ -54,6 +54,9 @@ class ModelRouter {
     // LIST //
     //////////
     this.router.get(`${this.basename}`, setGenerators, async (req, res) => {
+      const allowed = await req._isAllowed(this.modelName, 'list');
+      if (!allowed) throw new clientErrors.UnauthorizedError();
+
       const { limit, page } = req.query;
 
       const [query, select, pagination] = await Promise.all([
@@ -78,7 +81,10 @@ class ModelRouter {
     //////////////////
     // LIST - QUERY //
     //////////////////
-    this.router.post(`${this.basename}__query`, setGenerators, async (req, res) => {
+    this.router.post(`${this.basename}/__query`, setGenerators, async (req, res) => {
+      const allowed = await req._isAllowed(this.modelName, 'list');
+      if (!allowed) throw new clientErrors.UnauthorizedError();
+
       let { query, select, sort, populate, limit, page } = req.body;
       let pagination = null;
 
@@ -109,6 +115,9 @@ class ModelRouter {
     // CREATE //
     ////////////
     this.router.post(`${this.basename}`, setGenerators, async (req, res) => {
+      const allowed = await req._isAllowed(this.modelName, 'create');
+      if (!allowed) throw new clientErrors.UnauthorizedError();
+
       const isArr = Array.isArray(req.body);
       let arr = isArr ? req.body : [req.body];
 
@@ -147,6 +156,9 @@ class ModelRouter {
     // READ //
     //////////
     this.router.get(`${this.basename}/:id`, setGenerators, async (req, res) => {
+      const allowed = await req._isAllowed(this.modelName, 'read');
+      if (!allowed) throw new clientErrors.UnauthorizedError();
+
       const { id } = req.params;
       const { try_list } = req.query;
 
@@ -180,7 +192,10 @@ class ModelRouter {
     //////////////////
     // READ - QUERY //
     //////////////////
-    this.router.get(`${this.basename}__query/:id`, setGenerators, async (req, res) => {
+    this.router.post(`${this.basename}/__query/:id`, setGenerators, async (req, res) => {
+      const allowed = await req._isAllowed(this.modelName, 'read');
+      if (!allowed) throw new clientErrors.UnauthorizedError();
+
       const { id } = req.params;
       const { try_list } = req.query;
       let { select, populate } = req.body;
@@ -218,6 +233,9 @@ class ModelRouter {
     // UPDATE //
     ////////////
     this.router.put(`${this.basename}/:id`, setGenerators, async (req, res) => {
+      const allowed = await req._isAllowed(this.modelName, 'update');
+      if (!allowed) throw new clientErrors.UnauthorizedError();
+
       const { id } = req.params;
       let query = await req._genQuery(this.modelName, 'update', { _id: id });
       if (query === false) return null;
@@ -242,6 +260,9 @@ class ModelRouter {
     // DELETE //
     ////////////
     this.router.delete(`${this.basename}/:id`, setGenerators, async (req, res) => {
+      const allowed = await req._isAllowed(this.modelName, 'delete');
+      if (!allowed) throw new clientErrors.UnauthorizedError();
+
       const { id } = req.params;
       let query = await req._genQuery(this.modelName, 'delete', { _id: id });
       if (query === false) return null;

@@ -39,11 +39,12 @@ export function genPagination({ page = 1, limit }, hardLimit) {
 }
 
 export async function genSelect(modelName, access = 'read', _select) {
+  const select = ['_id'];
+
   const permissionSchema = getModelOption(modelName, 'permissionSchema');
-  if (!permissionSchema) return null;
+  if (!permissionSchema) return select;
 
   const permissions = this[PERMISSIONS];
-  const select = ['_id'];
 
   const keys = Object.keys(permissionSchema);
   for (let x = 0; x < keys.length; x++) {
@@ -191,6 +192,23 @@ export function getPermissions() {
   return this[permissionField] || {};
 }
 
+export async function isAllowed(modelName, access) {
+  const routeGuard = getModelOption(modelName, `routeGuard.${access}`);
+  let allowed = false;
+
+  const permissions = this[PERMISSIONS];
+
+  if (isBoolean(routeGuard)) {
+    return routeGuard === true;
+  } else if (isString(routeGuard)) {
+    return permissions[routeGuard];
+  } else if (isFunction(routeGuard)) {
+    return routeGuard.call(this, permissions);
+  }
+
+  return allowed;
+}
+
 export function setGenerators(req, res, next) {
   req._genQuery = genQuery.bind(req);
   req._genPagination = genPagination.bind(req);
@@ -204,6 +222,7 @@ export function setGenerators(req, res, next) {
   req._decorate = decorate.bind(req);
   req._decorateAll = decorateAll.bind(req);
   req._getPermissions = getPermissions.bind(req);
+  req._isAllowed = isAllowed.bind(req);
   req[PERMISSIONS] = req._getPermissions();
   next();
 }

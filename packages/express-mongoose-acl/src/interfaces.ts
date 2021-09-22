@@ -4,6 +4,7 @@ export interface ModelRouterProps {
   permissionSchema?: any;
   permissionField?: string;
   docPermissions?: Function;
+  routeGuard?: boolean | string | Function;
   baseQuery?: any;
   decorate?: any;
   prepare?: any;

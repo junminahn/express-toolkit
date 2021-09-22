@@ -55,6 +55,7 @@ const userRouter = new ModelRouter('User', {
       return doc;
     },
   },
+  routeGuard: true,
 });
 
 const orgRouter = new ModelRouter('Org', {
@@ -63,6 +64,7 @@ const orgRouter = new ModelRouter('Org', {
   docPermissions: () => {
     return { read: false, edit: true };
   },
+  routeGuard: true,
 });
 
 router.use('/auth', auth);
