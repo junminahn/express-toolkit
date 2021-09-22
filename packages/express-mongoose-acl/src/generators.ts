@@ -22,7 +22,7 @@ export async function genQuery(modelName, access = 'read', _query) {
 
   const baseQuery = await baseQueryFn.call(this, permissions);
   if (baseQuery === false) return false;
-  if (isEmpty(baseQuery)) return _query;
+  if (baseQuery === true || isEmpty(baseQuery)) return _query;
   if (!_query) return baseQuery;
 
   return { $and: [baseQuery, _query] };
@@ -92,7 +92,7 @@ async function genAllowedFields(modelName, doc, access) {
 
   const permissions = this[PERMISSIONS];
   const modelPermissionField = getModelOption(modelName, 'permissionField', '_permissions');
-  const modelPermissions = doc._doc[modelPermissionField] || {};
+  const modelPermissions = (doc._doc && doc._doc[modelPermissionField]) || {};
   const fields = [];
 
   const keys = Object.keys(permissionSchema);

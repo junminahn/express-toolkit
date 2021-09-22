@@ -8,7 +8,7 @@ import ModelRouter from '../../src';
 const userRouter = new ModelRouter('User', {
   baseUrl: null,
   permissionSchema: {
-    name: { list: true, read: true },
+    name: { list: true, read: true, create: true },
     role: { list: true, read: true },
     statusHistory: {
       list: (permissions) => {
