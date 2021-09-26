@@ -55,6 +55,21 @@ class Model {
   findOneAndRemove(query) {
     return this.model.findOneAndRemove(query);
   }
+
+  // see https://mongoosejs.com/docs/api.html#query_Query-countDocuments
+  countDocuments(filter = {}) {
+    return this.model.countDocuments(filter);
+  }
+
+  // see https://mongoosejs.com/docs/api.html#model_Model.estimatedDocumentCount
+  estimatedDocumentCount() {
+    return this.model.estimatedDocumentCount();
+  }
+
+  // see https://mongoosejs.com/docs/api.html#model_Model.distinct
+  distinct(field: string, conditions = {}) {
+    return this.model.distinct(field, conditions);
+  }
 }
 
 export default Model;

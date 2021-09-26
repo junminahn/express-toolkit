@@ -85,7 +85,7 @@ class ModelRouter {
       const allowed = await req._isAllowed(this.modelName, 'list');
       if (!allowed) throw new clientErrors.UnauthorizedError();
 
-      let { query, select, sort, populate, limit, page } = req.body;
+      let { query, select, sort, populate, limit, page, includesCount = false } = req.body;
       let pagination = null;
 
       [query, select, populate, pagination] = await Promise.all([
@@ -108,7 +108,17 @@ class ModelRouter {
         }),
       );
 
-      return req._decorateAll(this.modelName, docs, 'list');
+      const rows = await req._decorateAll(this.modelName, docs, 'list');
+
+      if (includesCount) {
+        return {
+          // see https://mongoosejs.com/docs/api.html#model_Model.estimatedDocumentCount
+          count: await this.model.countDocuments(query),
+          rows,
+        };
+      } else {
+        return rows;
+      }
     });
 
     ////////////
@@ -243,8 +253,9 @@ class ModelRouter {
       let doc = await this.model.findOne({ query });
       if (!doc) return null;
 
+      doc._original = doc.toObject();
       doc = await req._permit(this.modelName, doc, 'update');
-      const data = await req._prepare(this.modelName, req.body, 'update');
+      const data = await req._prepare(this.modelName, req.body, 'update', doc);
       const allowedFields = await req._genEditableFields(this.modelName, doc);
 
       Object.assign(doc, pick(data, allowedFields));
@@ -271,6 +282,38 @@ class ModelRouter {
       if (!doc) return null;
 
       return true;
+    });
+
+    //////////////
+    // DISTINCT //
+    //////////////
+    this.router.get(`${this.basename}/distinct/:field`, setGenerators, async (req, res) => {
+      const allowed = await req._isAllowed(this.modelName, 'distinct');
+      if (!allowed) throw new clientErrors.UnauthorizedError();
+
+      const { field } = req.params;
+      const query = await req._genQuery(this.modelName, 'read', {});
+      if (query === false) return null;
+
+      const result = await this.model.distinct(field, query);
+      if (!result) return null;
+
+      return result;
+    });
+
+    this.router.post(`${this.basename}/distinct/:field`, setGenerators, async (req, res) => {
+      const allowed = await req._isAllowed(this.modelName, 'distinct');
+      if (!allowed) throw new clientErrors.UnauthorizedError();
+
+      const { field } = req.params;
+      let { query } = req.body;
+      query = await req._genQuery(this.modelName, 'read', query);
+      if (query === false) return null;
+
+      const result = await this.model.distinct(field, query);
+      if (!result) return null;
+
+      return result;
     });
   }
 

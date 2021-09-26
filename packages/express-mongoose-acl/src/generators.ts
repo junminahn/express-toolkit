@@ -65,7 +65,7 @@ export async function genSelect(modelName, access = 'read', _select) {
 }
 
 export async function genPopulate(modelName, access = 'read', _populate) {
-  if (!_populate) return null;
+  if (!_populate) return [];
 
   let populate = Array.isArray(_populate) ? _populate : [_populate];
   populate = compact(
@@ -122,12 +122,12 @@ export function genCreatableFields(modelName, doc) {
   return genAllowedFields.call(this, modelName, doc, 'create');
 }
 
-export async function prepare(modelName, docObject, access) {
+export async function prepare(modelName, docObject, access, doc) {
   const prepare = getModelOption(modelName, `prepare.${access}`, null);
 
   if (isFunction(prepare)) {
     const permissions = this[PERMISSIONS];
-    docObject = await transform.call(this, docObject, permissions);
+    docObject = await prepare.call(this, docObject, permissions, doc);
   }
 
   return docObject;
