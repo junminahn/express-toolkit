@@ -57,7 +57,7 @@ class ModelRouter {
       const allowed = await req._isAllowed(this.modelName, 'list');
       if (!allowed) throw new clientErrors.UnauthorizedError();
 
-      const { limit, page } = req.query;
+      const { limit, page, permit = 'true', count_all = 'false' } = req.query;
 
       const [query, select, pagination] = await Promise.all([
         req._genQuery(this.modelName, 'list'),
@@ -70,12 +70,21 @@ class ModelRouter {
       let docs = await this.model.find({ query, select, ...pagination });
       docs = await Promise.all(
         docs.map(async (doc) => {
-          doc = await req._permit(this.modelName, doc, 'list');
+          if (permit !== 'false') doc = await req._permit(this.modelName, doc, 'list');
           return req._decorate(this.modelName, doc, 'list');
         }),
       );
 
-      return req._decorateAll(this.modelName, docs, 'list');
+      const rows = await req._decorateAll(this.modelName, docs, 'list');
+
+      if (count_all === 'true') {
+        return {
+          count: await this.model.countDocuments(query),
+          rows,
+        };
+      } else {
+        return rows;
+      }
     });
 
     //////////////////
@@ -85,7 +94,7 @@ class ModelRouter {
       const allowed = await req._isAllowed(this.modelName, 'list');
       if (!allowed) throw new clientErrors.UnauthorizedError();
 
-      let { query, select, sort, populate, limit, page, includesCount = false } = req.body;
+      let { query, select, sort, populate, limit, page, permit = true, count_all = false } = req.body;
       let pagination = null;
 
       [query, select, populate, pagination] = await Promise.all([
@@ -103,16 +112,15 @@ class ModelRouter {
       let docs = await this.model.find({ query, select, sort, populate, ...pagination });
       docs = await Promise.all(
         docs.map(async (doc) => {
-          doc = await req._permit(this.modelName, doc, 'list');
+          if (permit !== false) doc = await req._permit(this.modelName, doc, 'list');
           return req._decorate(this.modelName, doc, 'list');
         }),
       );
 
       const rows = await req._decorateAll(this.modelName, docs, 'list');
 
-      if (includesCount) {
+      if (count_all) {
         return {
-          // see https://mongoosejs.com/docs/api.html#model_Model.estimatedDocumentCount
           count: await this.model.countDocuments(query),
           rows,
         };
@@ -128,21 +136,22 @@ class ModelRouter {
       const allowed = await req._isAllowed(this.modelName, 'create');
       if (!allowed) throw new clientErrors.UnauthorizedError();
 
+      const { permit = 'true' } = req.query;
       const isArr = Array.isArray(req.body);
       let arr = isArr ? req.body : [req.body];
 
       const items = await Promise.all(
         arr.map(async (item) => {
-          const data = await req._prepare(this.modelName, item, 'create');
-          const allowedFields = await req._genCreatableFields(this.modelName, data);
-          return pick(data, allowedFields);
+          const allowedFields = await req._genCreatableFields(this.modelName, item);
+          const allowedData = pick(item, allowedFields);
+          return req._prepare(this.modelName, allowedData, item, 'create');
         }),
       );
 
       let docs = await this.model.create(items);
       docs = await Promise.all(
         docs.map(async (doc) => {
-          doc = await req._permit(this.modelName, doc, 'create');
+          if (permit !== 'false') doc = await req._permit(this.modelName, doc, 'create');
           return req._decorate(this.modelName, doc, 'create');
         }),
       );
@@ -170,7 +179,7 @@ class ModelRouter {
       if (!allowed) throw new clientErrors.UnauthorizedError();
 
       const { id } = req.params;
-      const { try_list } = req.query;
+      const { permit = 'true', try_list = 'false' } = req.query;
 
       let [query, select] = await Promise.all([
         req._genQuery(this.modelName, 'read', { _id: id }),
@@ -193,7 +202,7 @@ class ModelRouter {
 
       if (!doc) return null;
 
-      doc = await req._permit(this.modelName, doc, 'read');
+      if (permit !== 'false') doc = await req._permit(this.modelName, doc, 'read');
       doc = await req._decorate(this.modelName, doc, 'read');
 
       return doc;
@@ -208,7 +217,7 @@ class ModelRouter {
 
       const { id } = req.params;
       const { try_list } = req.query;
-      let { select, populate } = req.body;
+      let { select, populate, permit = true } = req.body;
       let query = null;
 
       [query, select, populate] = await Promise.all([
@@ -233,7 +242,7 @@ class ModelRouter {
 
       if (!doc) return null;
 
-      doc = await req._permit(this.modelName, doc, 'read');
+      if (permit !== false) doc = await req._permit(this.modelName, doc, 'read');
       doc = await req._decorate(this.modelName, doc, 'read');
 
       return doc;
@@ -255,10 +264,11 @@ class ModelRouter {
 
       doc._original = doc.toObject();
       doc = await req._permit(this.modelName, doc, 'update');
-      const data = await req._prepare(this.modelName, req.body, 'update', doc);
       const allowedFields = await req._genEditableFields(this.modelName, doc);
+      const allowedData = pick(req.body, allowedFields);
+      const prepared = await req._prepare(this.modelName, allowedData, req.body, 'update', doc);
 
-      Object.assign(doc, pick(data, allowedFields));
+      Object.assign(doc, prepared);
 
       doc = await req._transform(this.modelName, doc, 'update');
       doc = await doc.save();

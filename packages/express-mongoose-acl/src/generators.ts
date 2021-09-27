@@ -122,15 +122,15 @@ export function genCreatableFields(modelName, doc) {
   return genAllowedFields.call(this, modelName, doc, 'create');
 }
 
-export async function prepare(modelName, docObject, access, doc) {
+export async function prepare(modelName, allowedData, originalData, access, doc) {
   const prepare = getModelOption(modelName, `prepare.${access}`, null);
 
   if (isFunction(prepare)) {
     const permissions = this[PERMISSIONS];
-    docObject = await prepare.call(this, docObject, permissions, doc);
+    allowedData = await prepare.call(this, allowedData, permissions, originalData, doc);
   }
 
-  return docObject;
+  return allowedData;
 }
 
 export async function transform(modelName, doc, access) {

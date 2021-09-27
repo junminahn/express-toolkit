@@ -7,6 +7,7 @@ export interface ModelRouterProps {
   routeGuard?: boolean | string | Function;
   baseQuery?: any;
   decorate?: any;
+  decorateAll?: any;
   prepare?: any;
   transform?: any;
 }
