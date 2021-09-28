@@ -127,7 +127,7 @@ export async function prepare(modelName, allowedData, originalData, access, doc)
 
   if (isFunction(prepare)) {
     const permissions = this[PERMISSIONS];
-    allowedData = await prepare.call(this, allowedData, permissions, originalData, doc);
+    allowedData = await prepare.call(this, allowedData, permissions, { original: originalData, document: doc });
   }
 
   return allowedData;
@@ -138,7 +138,7 @@ export async function transform(modelName, doc, access) {
 
   if (isFunction(transform)) {
     const permissions = this[PERMISSIONS];
-    doc = await transform.call(this, doc, permissions);
+    doc = await transform.call(this, doc, permissions, {});
   }
 
   return doc;
@@ -150,7 +150,7 @@ export async function permit(modelName, doc, access) {
 
   if (isFunction(permit)) {
     const permissions = this[PERMISSIONS];
-    doc._doc[modelPermissionField] = await permit.call(this, doc, permissions);
+    doc._doc[modelPermissionField] = await permit.call(this, doc, permissions, {});
   } else {
     doc._doc[modelPermissionField] = {};
   }
@@ -160,6 +160,8 @@ export async function permit(modelName, doc, access) {
 
 export async function decorate(modelName, doc, access, pickFields) {
   const decorate = getModelOption(modelName, `decorate.${access}`, null);
+  const original = doc._original;
+  const modifiedPaths = doc._modifiedPaths;
   doc = doc.toObject();
 
   if (pickFields) {
@@ -170,7 +172,7 @@ export async function decorate(modelName, doc, access, pickFields) {
 
   if (isFunction(decorate)) {
     const permissions = this[PERMISSIONS];
-    doc = await decorate.call(this, doc, permissions);
+    doc = await decorate.call(this, doc, permissions, { original, modifiedPaths });
   }
 
   return doc;
@@ -181,7 +183,7 @@ export async function decorateAll(modelName, docsObject, access) {
 
   if (isFunction(decorateAll)) {
     const permissions = this[PERMISSIONS];
-    docsObject = await decorateAll.call(this, docsObject, permissions);
+    docsObject = await decorateAll.call(this, docsObject, permissions, {});
   }
 
   return docsObject;
