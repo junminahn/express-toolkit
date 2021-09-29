@@ -105,9 +105,9 @@ async function genAllowedFields(modelName, doc, access) {
     if (isBoolean(value)) {
       if (value) fields.push(key);
     } else if (isString(value)) {
-      if (modelPermissions[value]) fields.push(key);
+      if (permissions[value] || modelPermissions[value]) fields.push(key);
     } else if (isFunction(value)) {
-      if (await value.call(this, modelPermissions, permissions)) fields.push(key);
+      if (await value.call(this, permissions, modelPermissions)) fields.push(key);
     }
   }
 
