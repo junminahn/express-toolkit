@@ -14,6 +14,18 @@ import { Populate } from './interfaces';
 
 const PERMISSIONS = Symbol('permissions');
 
+export async function genIDQuery(modelName, id) {
+  const identifier = getModelOption(modelName, 'identifier', '_id');
+
+  if (isString(identifier)) {
+    return { [identifier]: id };
+  } else if (isFunction(identifier)) {
+    return identifier.call(this, id);
+  }
+
+  return { _id: id };
+}
+
 export async function genQuery(modelName, access = 'read', _query) {
   const baseQueryFn = getModelOption(modelName, `baseQuery.${access}`, null);
   if (!isFunction(baseQueryFn)) return _query || {};
@@ -212,6 +224,7 @@ export async function isAllowed(modelName, access) {
 }
 
 export function setGenerators(req, res, next) {
+  req._genIDQuery = genIDQuery.bind(req);
   req._genQuery = genQuery.bind(req);
   req._genPagination = genPagination.bind(req);
   req._genSelect = genSelect.bind(req);

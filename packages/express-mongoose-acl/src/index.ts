@@ -14,7 +14,7 @@ import { ModelRouterProps } from './interfaces';
 const pluralize = mongoose.pluralize();
 const clientErrors = JsonRouter.clientErrors;
 
-const defaultModelOptions = { listHardLimit: 1000, permissionField: '_permissions' };
+const defaultModelOptions = { listHardLimit: 1000, permissionField: '_permissions', identifier: '_id' };
 
 class ModelRouter {
   modelName: string;
@@ -183,7 +183,7 @@ class ModelRouter {
       const { include_permissions = 'true', try_list = 'false' } = req.query;
 
       let [query, select] = await Promise.all([
-        req._genQuery(this.modelName, 'read', { _id: id }),
+        req._genQuery(this.modelName, 'read', await req._genIDQuery(this.modelName, id)),
         req._genSelect(this.modelName, 'read'),
       ]);
 
@@ -194,7 +194,7 @@ class ModelRouter {
       // if not found, try to get the doc with 'list' access
       if (!doc && try_list === 'true') {
         [query, select] = await Promise.all([
-          req._genQuery(this.modelName, 'list', { _id: id }),
+          req._genQuery(this.modelName, 'list', await req._genIDQuery(this.modelName, id)),
           req._genSelect(this.modelName, 'list'),
         ]);
 
@@ -223,7 +223,7 @@ class ModelRouter {
       let query = null;
 
       [query, select, populate] = await Promise.all([
-        req._genQuery(this.modelName, 'read', { _id: id }),
+        req._genQuery(this.modelName, 'read', await req._genIDQuery(this.modelName, id)),
         req._genSelect(this.modelName, 'read', select),
         req._genPopulate(this.modelName, 'read', populate),
       ]);
@@ -235,7 +235,7 @@ class ModelRouter {
       // if not found, try to get the doc with 'list' access
       if (!doc && tryList) {
         [query, select] = await Promise.all([
-          req._genQuery(this.modelName, 'list', { _id: id }),
+          req._genQuery(this.modelName, 'list', await req._genIDQuery(this.modelName, id)),
           req._genSelect(this.modelName, 'list', select),
         ]);
 
@@ -258,7 +258,7 @@ class ModelRouter {
       if (!allowed) throw new clientErrors.UnauthorizedError();
 
       const { id } = req.params;
-      let query = await req._genQuery(this.modelName, 'update', { _id: id });
+      let query = await req._genQuery(this.modelName, 'update', await req._genIDQuery(this.modelName, id));
       if (query === false) return null;
 
       let doc = await this.model.findOne({ query });
@@ -288,7 +288,7 @@ class ModelRouter {
       if (!allowed) throw new clientErrors.UnauthorizedError();
 
       const { id } = req.params;
-      let query = await req._genQuery(this.modelName, 'delete', { _id: id });
+      let query = await req._genQuery(this.modelName, 'delete', await req._genIDQuery(this.modelName, id));
       if (query === false) return null;
 
       let doc = await this.model.findOneAndRemove(query);

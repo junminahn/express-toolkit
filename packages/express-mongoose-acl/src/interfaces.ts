@@ -10,6 +10,7 @@ export interface ModelRouterProps {
   decorateAll?: any;
   prepare?: any;
   transform?: any;
+  identifier?: string | Function;
 }
 
 export interface Populate {
