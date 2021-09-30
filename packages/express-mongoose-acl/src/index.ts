@@ -108,8 +108,7 @@ class ModelRouter {
       if (query === false) return [];
 
       // prevent populate paths from updating query select fields
-      if (select) populate = populate.filter((p) => select.includes(p.path));
-
+      if (select) populate = populate.filter((p) => select.includes(p.path.split('.')[0]));
       let docs = await this.model.find({ query, select, sort, populate, ...pagination });
       docs = await Promise.all(
         docs.map(async (doc) => {
