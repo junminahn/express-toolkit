@@ -89,8 +89,10 @@ export async function genPopulate(modelName, access = 'read', _populate) {
 
         access = isString(p) ? access : p.access;
         ret.select = await this._genSelect(refModelName, access, ret.select);
-        ret.match = await this._genQuery(refModelName, access, null);
+        const query = await this._genQuery(refModelName, access, null);
+        if (query === false) return null;
 
+        ret.match = query;
         return ret;
       }),
     ),
