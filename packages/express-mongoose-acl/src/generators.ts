@@ -83,7 +83,15 @@ export async function genPopulate(modelName, access = 'read', _populate) {
   populate = compact(
     await Promise.all(
       populate.map(async (p: Populate | string) => {
-        const ret: Populate = isString(p) ? { path: p } : { path: p.path, select: p.select };
+        const ret: Populate = isString(p)
+          ? { path: p }
+          : {
+              path: p.path,
+              select: Array.isArray(p.select)
+                ? p.select.map((v) => v.trim())
+                : p.select.split(' ').map((v) => v.trim()),
+            };
+
         const refModelName = getModelRef(modelName, ret.path);
         if (!refModelName) return null;
 

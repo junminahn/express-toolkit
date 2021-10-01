@@ -15,7 +15,7 @@ export interface ModelRouterProps {
 
 export interface Populate {
   path: string;
-  select?: string[];
+  select?: string | string[];
   match?: any;
   access?: string;
 }
