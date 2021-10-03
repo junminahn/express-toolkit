@@ -95,13 +95,13 @@ class ModelRouter {
       if (!allowed) throw new clientErrors.UnauthorizedError();
 
       let { query, select, sort, populate, limit, page, options = {} } = req.body;
-      const { includePermissions = true, includeCount = false } = options;
+      const { includePermissions = true, includeCount = false, populateAccess = 'read' } = options;
       let pagination = null;
 
       [query, select, populate, pagination] = await Promise.all([
         req._genQuery(this.modelName, 'list', query),
         req._genSelect(this.modelName, 'list', select),
-        req._genPopulate(this.modelName, 'read', populate),
+        req._genPopulate(this.modelName, populateAccess, populate),
         req._genPagination({ limit, page }, this.options.listHardLimit),
       ]);
 
@@ -179,7 +179,7 @@ class ModelRouter {
       if (!allowed) throw new clientErrors.UnauthorizedError();
 
       const { id } = req.params;
-      const { include_permissions = 'true', try_list = 'false' } = req.query;
+      const { include_permissions = 'true', try_list = 'true' } = req.query;
 
       let [query, select] = await Promise.all([
         req._genQuery(this.modelName, 'read', await req._genIDQuery(this.modelName, id)),
@@ -217,14 +217,13 @@ class ModelRouter {
 
       const { id } = req.params;
       let { select, populate, options = {} } = req.body;
-      const { includePermissions = true, tryList = true } = options;
+      const { includePermissions = true, tryList = true, populateAccess = 'read' } = options;
 
       let query = null;
-
       [query, select, populate] = await Promise.all([
         req._genQuery(this.modelName, 'read', await req._genIDQuery(this.modelName, id)),
         req._genSelect(this.modelName, 'read', select),
-        req._genPopulate(this.modelName, 'read', populate),
+        req._genPopulate(this.modelName, populateAccess, populate),
       ]);
 
       if (query === false) return null;

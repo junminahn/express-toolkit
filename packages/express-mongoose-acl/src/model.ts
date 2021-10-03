@@ -15,13 +15,31 @@ interface FindOneProps {
   populate?: any;
 }
 
+// Reference
+// const indexMap = Object.create(null);
+// const reducer = (baseArr, index) => baseArr.concat(Object.keys(index.key));
+// const concatKeys = async (name) => {
+//   const indexes = await mongoose.model(name).collection.indexes()
+//   indexMap[name] = indexes.reduce(reducer, []);
+// };
+// await Promise.all(mongoose.modelNames().map(concatKeys));
+
+const reducer1 = (baseArr, index) => baseArr.concat(Object.keys(index.key));
+const reducer2 = (baseObj, key) => ({ ...baseObj, [key]: true });
+
 class Model {
   modelName: string;
   model: any;
+  indexKeys: string[];
+  indexMap: any;
 
   constructor(modelName: string) {
     this.modelName = modelName;
     this.model = mongoose.model(modelName);
+    this.model.collection.indexes({}, (err, result) => {
+      this.indexKeys = result.reduce(reducer1, []);
+      this.indexMap = this.indexKeys.reduce(reducer2, {});
+    });
   }
 
   new() {
@@ -34,6 +52,8 @@ class Model {
   }
 
   find({ query, select, sort, populate, limit, skip }: FindProps) {
+    sort = this.pruneSort(sort);
+
     let builder = this.model.find(query);
     if (select) builder = builder.select(select);
     if (skip) builder = builder.skip(skip);
@@ -42,6 +62,22 @@ class Model {
     if (populate) builder = builder.populate(populate);
 
     return builder;
+  }
+
+  pruneSort(sort = {}) {
+    const ret = {};
+    Object.keys(sort).forEach((key) => {
+      if (this.indexMap[key]) {
+        ret[key] = sort[key];
+      } else {
+        console.info(
+          `Please consider creating an index for field "${key}" in collection "${this.modelName}" for better sorting`,
+        );
+        ret[key] = sort[key];
+      }
+    });
+
+    return ret;
   }
 
   findOne({ query, select, populate }: FindOneProps) {

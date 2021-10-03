@@ -13,6 +13,7 @@ import { getOption, getModelOption, getModelRef } from './options';
 import { Populate } from './interfaces';
 
 const PERMISSIONS = Symbol('permissions');
+const PERMISSION_KEYS = Symbol('permission-keys');
 
 export async function genIDQuery(modelName, id) {
   const identifier = getModelOption(modelName, 'identifier', '_id');
@@ -89,13 +90,15 @@ export async function genPopulate(modelName, access = 'read', _populate) {
               path: p.path,
               select: Array.isArray(p.select)
                 ? p.select.map((v) => v.trim())
-                : p.select.split(' ').map((v) => v.trim()),
+                : isString(p.select)
+                ? p.select.split(' ').map((v) => v.trim())
+                : null,
             };
 
         const refModelName = getModelRef(modelName, ret.path);
         if (!refModelName) return null;
 
-        access = isString(p) ? access : p.access;
+        if (!isString(p) && p.access) access = p.access;
         ret.select = await this._genSelect(refModelName, access, ret.select);
         const query = await this._genQuery(refModelName, access, null);
         if (query === false) return null;
@@ -249,5 +252,6 @@ export function setGenerators(req, res, next) {
   req._getPermissions = getPermissions.bind(req);
   req._isAllowed = isAllowed.bind(req);
   req[PERMISSIONS] = req._getPermissions();
+  req[PERMISSION_KEYS] = Object.keys(req[PERMISSIONS]);
   next();
 }
