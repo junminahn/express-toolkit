@@ -11,6 +11,7 @@ import compact from 'lodash/compact';
 import intersection from 'lodash/intersection';
 import { getOption, getModelOption, getModelRef } from './options';
 import { Populate } from './interfaces';
+import Permission from './permission';
 
 const PERMISSIONS = Symbol('permissions');
 const PERMISSION_KEYS = Symbol('permission-keys');
@@ -216,7 +217,7 @@ export async function decorateAll(modelName, docsObject, access) {
 
 export function getPermissions() {
   const permissionField = getOption('permissionField');
-  return this[permissionField] || {};
+  return new Permission(this[permissionField] || {});
 }
 
 export async function isAllowed(modelName, access) {
@@ -252,6 +253,6 @@ export function setGenerators(req, res, next) {
   req._getPermissions = getPermissions.bind(req);
   req._isAllowed = isAllowed.bind(req);
   req[PERMISSIONS] = req._getPermissions();
-  req[PERMISSION_KEYS] = Object.keys(req[PERMISSIONS]);
+  req[PERMISSION_KEYS] = req[PERMISSIONS].$_permissionKeys;
   next();
 }

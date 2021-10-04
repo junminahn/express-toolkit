@@ -1,0 +1,41 @@
+interface BooleanObject {
+  [key: string]: boolean;
+}
+
+class Permission {
+  $_permissions: BooleanObject;
+  $_permissionKeys: string[];
+
+  constructor(permissions: BooleanObject) {
+    this.$_permissions = permissions;
+    this.$_permissionKeys = Object.keys(permissions);
+
+    for (let x = 0; x < this.$_permissionKeys.length; x++) {
+      const key = this.$_permissionKeys[x];
+      Object.defineProperty(this, key, {
+        enumerable: true,
+        get: function () {
+          return this.has(key);
+        },
+      });
+    }
+  }
+
+  has(permission) {
+    return this.$_permissions[permission] || false;
+  }
+
+  hasAny(permissions) {
+    return permissions.some((permission) => {
+      return this.has(permission);
+    });
+  }
+
+  hasAll(permissions) {
+    return permissions.every((permission) => {
+      return this.has(permission);
+    });
+  }
+}
+
+export default Permission;

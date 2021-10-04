@@ -36,7 +36,7 @@ class Model {
   constructor(modelName: string) {
     this.modelName = modelName;
     this.model = mongoose.model(modelName);
-    this.model.collection.indexes({}, (err, result) => {
+    this.model.collection.indexes({}, (err, result = []) => {
       this.indexKeys = result.reduce(reducer1, []);
       this.indexMap = this.indexKeys.reduce(reducer2, {});
     });
