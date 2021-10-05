@@ -1,10 +1,25 @@
+type ValidationType = boolean | string | Function;
+
+interface Access {
+  list?: ValidationType;
+  create?: ValidationType;
+  read?: ValidationType;
+  update?: ValidationType;
+  delete?: ValidationType;
+  distinct?: ValidationType;
+}
+
+interface PermissionSchema {
+  [key: string]: Access;
+}
+
 export interface ModelRouterProps {
   baseUrl: string | null | undefined | false;
   listHardLimit?: number;
-  permissionSchema?: any;
+  permissionSchema?: PermissionSchema;
   permissionField?: string;
   docPermissions?: Function;
-  routeGuard?: boolean | string | Function;
+  routeGuard?: ValidationType | Access;
   baseQuery?: any;
   decorate?: any;
   decorateAll?: any;

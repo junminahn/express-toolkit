@@ -1,6 +1,7 @@
 import get from 'lodash/get';
 import isBoolean from 'lodash/isBoolean';
 import isString from 'lodash/isString';
+import isArray from 'lodash/isArray';
 import isFunction from 'lodash/isFunction';
 import isNaN from 'lodash/isNaN';
 import isEmpty from 'lodash/isEmpty';
@@ -15,6 +16,14 @@ import Permission from './permission';
 
 const PERMISSIONS = Symbol('permissions');
 const PERMISSION_KEYS = Symbol('permission-keys');
+
+const normalizeSelect = (select: string | string[]) => {
+  return Array.isArray(select)
+    ? select.map((v) => v.trim())
+    : isString(select)
+    ? select.split(' ').map((v) => v.trim())
+    : null;
+};
 
 export async function genIDQuery(modelName, id) {
   const identifier = getModelOption(modelName, 'identifier', '_id');
@@ -75,7 +84,9 @@ export async function genSelect(modelName, access = 'read', _select) {
     }
   }
 
-  return Array.isArray(_select) ? intersection(_select, select) : select;
+  _select = normalizeSelect(_select);
+
+  return _select ? intersection(_select, select) : select;
 }
 
 export async function genPopulate(modelName, access = 'read', _populate) {
@@ -89,11 +100,7 @@ export async function genPopulate(modelName, access = 'read', _populate) {
           ? { path: p }
           : {
               path: p.path,
-              select: Array.isArray(p.select)
-                ? p.select.map((v) => v.trim())
-                : isString(p.select)
-                ? p.select.split(' ').map((v) => v.trim())
-                : null,
+              select: normalizeSelect(p.select),
             };
 
         const refModelName = getModelRef(modelName, ret.path);
@@ -162,9 +169,13 @@ export async function prepare(modelName, allowedData, originalData, access, doc)
 export async function transform(modelName, doc, access) {
   const transform = getModelOption(modelName, `transform.${access}`, null);
 
+  const originalDoc = doc._originalDoc;
+  const originalData = doc._originalData;
+  const preparedData = doc._preparedData;
+
   if (isFunction(transform)) {
     const permissions = this[PERMISSIONS];
-    doc = await transform.call(this, doc, permissions, {});
+    doc = await transform.call(this, doc, permissions, { originalDoc, originalData, preparedData });
   }
 
   return doc;
@@ -186,8 +197,12 @@ export async function permit(modelName, doc, access) {
 
 export async function decorate(modelName, doc, access, pickFields) {
   const decorate = getModelOption(modelName, `decorate.${access}`, null);
-  const original = doc._original;
+
+  const originalDoc = doc._originalDoc;
+  const originalData = doc._originalData;
+  const preparedData = doc._preparedData;
   const modifiedPaths = doc._modifiedPaths;
+
   doc = doc.toObject();
 
   if (pickFields) {
@@ -198,7 +213,7 @@ export async function decorate(modelName, doc, access, pickFields) {
 
   if (isFunction(decorate)) {
     const permissions = this[PERMISSIONS];
-    doc = await decorate.call(this, doc, permissions, { original, modifiedPaths });
+    doc = await decorate.call(this, doc, permissions, { originalDoc, originalData, preparedData, modifiedPaths });
   }
 
   return doc;
@@ -229,7 +244,9 @@ export async function isAllowed(modelName, access) {
   if (isBoolean(routeGuard)) {
     return routeGuard === true;
   } else if (isString(routeGuard)) {
-    return permissions[routeGuard];
+    return permissions.has(routeGuard);
+  } else if (isArray(routeGuard)) {
+    return permissions.hasAny(routeGuard);
   } else if (isFunction(routeGuard)) {
     return routeGuard.call(this, permissions);
   }

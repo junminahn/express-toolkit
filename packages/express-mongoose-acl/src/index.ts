@@ -262,12 +262,14 @@ class ModelRouter {
       let doc = await this.model.findOne({ query });
       if (!doc) return null;
 
-      doc._original = doc.toObject();
+      doc._originalDoc = doc.toObject();
+      doc._originalData = req.body;
       doc = await req._permit(this.modelName, doc, 'update');
       const allowedFields = await req._genEditableFields(this.modelName, doc);
       const allowedData = pick(req.body, allowedFields);
       const prepared = await req._prepare(this.modelName, allowedData, req.body, 'update', doc);
 
+      doc._preparedData = prepared;
       Object.assign(doc, prepared);
 
       doc = await req._transform(this.modelName, doc, 'update');
