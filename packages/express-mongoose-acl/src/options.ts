@@ -21,6 +21,7 @@ export const setOptions = (options) => {
 
 export const setModelOptions = (modelName: string, options: ModelRouterProps) => {
   modelOptions[modelName] = options;
+  modelOptions[modelName]['permissionSchemaKeys'] = Object.keys(options.permissionSchema);
 };
 
 export const getOption = (optionKey: string, defaultValue?: any) => get(currentRootOptions, optionKey, defaultValue);

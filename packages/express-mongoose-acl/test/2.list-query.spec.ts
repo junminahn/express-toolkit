@@ -138,14 +138,14 @@ describe('Read Route', async () => {
       });
   });
 
-  it('should not have users2 returned for user3', (done) => {
+  it('should not have users2 (public) returned for user3', (done) => {
     request(app)
       .get(`/api/users/${seedDocuments.user2._id}`)
       .set('User', 'user3')
       .expect('Content-Type', /json/)
       .expect(200)
       .then((response) => {
-        expect(response.body).to.be.null;
+        expect(response.body._id).to.equal(String(seedDocuments.user2._id));
         done();
       });
   });

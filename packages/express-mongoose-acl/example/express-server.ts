@@ -68,7 +68,6 @@ const initExpresss = async (options?: Props) => {
       user = await User.findOne({ name: userName });
     }
 
-    console.log({ isAdmin: user?.role === 'admin', userId: user?._id });
     req._permissions = { isAdmin: user?.role === 'admin', userId: user?._id };
     next();
   });

@@ -13,12 +13,21 @@ interface PermissionSchema {
   [key: string]: Access;
 }
 
+interface DocPermissions {
+  list?: Function;
+  create?: Function;
+  read?: Function;
+  update?: Function;
+}
+
 export interface ModelRouterProps {
   baseUrl: string | null | undefined | false;
   listHardLimit?: number;
   permissionSchema?: PermissionSchema;
+  permissionSchemaKeys?: string[];
   permissionField?: string;
-  docPermissions?: Function;
+  permissionFields?: string[];
+  docPermissions?: DocPermissions | Function;
   routeGuard?: ValidationType | Access;
   baseQuery?: any;
   decorate?: any;
@@ -33,4 +42,17 @@ export interface Populate {
   select?: string | string[];
   match?: any;
   access?: string;
+}
+
+interface keyValue {
+  [key: string]: any;
+}
+
+export interface MiddlewareContext {
+  originalDoc?: keyValue;
+  currentDoc?: keyValue;
+  originalData?: keyValue;
+  preparedData?: keyValue;
+  modifiedPaths?: string[];
+  modelPermissions?: keyValue;
 }

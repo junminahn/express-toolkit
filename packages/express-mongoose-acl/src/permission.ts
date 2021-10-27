@@ -21,6 +21,10 @@ class Permission {
     }
   }
 
+  prop(permission) {
+    return this.$_permissions.hasOwnProperty(permission);
+  }
+
   has(permission) {
     return this.$_permissions[permission] || false;
   }

@@ -9,12 +9,17 @@ import Model from './model';
 
 import { setGenerators } from './generators';
 import { setModelOptions } from './options';
-import { ModelRouterProps } from './interfaces';
+import { ModelRouterProps, MiddlewareContext } from './interfaces';
 
 const pluralize = mongoose.pluralize();
 const clientErrors = JsonRouter.clientErrors;
 
-const defaultModelOptions = { listHardLimit: 1000, permissionField: '_permissions', identifier: '_id' };
+const defaultModelOptions = {
+  listHardLimit: 1000,
+  permissionField: '_permissions',
+  permissionFields: [],
+  identifier: '_id',
+};
 
 class ModelRouter {
   modelName: string;
@@ -71,6 +76,7 @@ class ModelRouter {
       docs = await Promise.all(
         docs.map(async (doc) => {
           if (include_permissions !== 'false') doc = await req._permit(this.modelName, doc, 'list');
+          doc = await req._pickAllowedFields(this.modelName, doc, 'list', ['_id', this.options.permissionField]);
           return req._decorate(this.modelName, doc, 'list');
         }),
       );
@@ -113,6 +119,7 @@ class ModelRouter {
       docs = await Promise.all(
         docs.map(async (doc) => {
           if (includePermissions) doc = await req._permit(this.modelName, doc, 'list');
+          doc = await req._pickAllowedFields(this.modelName, doc, 'list', ['_id', this.options.permissionField]);
           return req._decorate(this.modelName, doc, 'list');
         }),
       );
@@ -140,23 +147,32 @@ class ModelRouter {
       const isArr = Array.isArray(req.body);
       let arr = isArr ? req.body : [req.body];
 
+      const contexts: MiddlewareContext[] = [];
+
       const items = await Promise.all(
         arr.map(async (item) => {
-          const allowedFields = await req._genCreatableFields(this.modelName, item);
+          const context: MiddlewareContext = { originalData: item };
+
+          const allowedFields = await req._genAllowedFields(this.modelName, item, 'create');
           const allowedData = pick(item, allowedFields);
-          return req._prepare(this.modelName, allowedData, item, 'create');
+          const preparedData = await req._prepare(this.modelName, allowedData, 'create', context);
+
+          context.preparedData = preparedData;
+          contexts.push(context);
+          return preparedData;
         }),
       );
 
       let docs = await this.model.create(items);
       docs = await Promise.all(
-        docs.map(async (doc) => {
-          if (include_permissions !== 'false') doc = await req._permit(this.modelName, doc, 'create');
-          return req._decorate(this.modelName, doc, 'create');
+        docs.map(async (doc, index) => {
+          if (include_permissions !== 'false') doc = await req._permit(this.modelName, doc, 'create', contexts[index]);
+          doc = await req._pickAllowedFields(this.modelName, doc, 'read', ['_id', this.options.permissionField]);
+          return req._decorate(this.modelName, doc, 'create', contexts[index]);
         }),
       );
 
-      res.status(201).json(isArr ? items : items[0]);
+      res.status(201).json(isArr ? docs : docs[0]);
     });
 
     /////////////////
@@ -203,6 +219,7 @@ class ModelRouter {
       if (!doc) return null;
 
       if (include_permissions !== 'false') doc = await req._permit(this.modelName, doc, 'read');
+      doc = await req._pickAllowedFields(this.modelName, doc, 'read', ['_id', this.options.permissionField]);
       doc = await req._decorate(this.modelName, doc, 'read');
 
       return doc;
@@ -243,6 +260,7 @@ class ModelRouter {
       if (!doc) return null;
 
       if (includePermissions) doc = await req._permit(this.modelName, doc, 'read');
+      doc = await req._pickAllowedFields(this.modelName, doc, 'read', ['_id', this.options.permissionField]);
       doc = await req._decorate(this.modelName, doc, 'read');
 
       return doc;
@@ -262,20 +280,27 @@ class ModelRouter {
       let doc = await this.model.findOne({ query });
       if (!doc) return null;
 
-      doc._originalDoc = doc.toObject();
-      doc._originalData = req.body;
-      doc = await req._permit(this.modelName, doc, 'update');
-      const allowedFields = await req._genEditableFields(this.modelName, doc);
-      const allowedData = pick(req.body, allowedFields);
-      const prepared = await req._prepare(this.modelName, allowedData, req.body, 'update', doc);
+      const context: MiddlewareContext = {};
 
-      doc._preparedData = prepared;
+      context.originalDoc = doc.toObject();
+      context.originalData = req.body;
+
+      doc = await req._permit(this.modelName, doc, 'update', context);
+
+      context.currentDoc = doc;
+      const allowedFields = await req._genAllowedFields(this.modelName, doc, 'update');
+      const allowedData = pick(req.body, allowedFields);
+      const prepared = await req._prepare(this.modelName, allowedData, 'update', context);
+
+      context.preparedData = prepared;
       Object.assign(doc, prepared);
 
-      doc = await req._transform(this.modelName, doc, 'update');
-      doc._modifiedPaths = doc.modifiedPaths();
+      context.modifiedPaths = doc.modifiedPaths();
+      doc = await req._transform(this.modelName, doc, 'update', context);
+      context.modifiedPaths = doc.modifiedPaths();
       doc = await doc.save();
-      doc = await req._decorate(this.modelName, doc, 'update', true);
+      doc = await req._pickAllowedFields(this.modelName, doc, 'read', ['_id', this.options.permissionField]);
+      doc = await req._decorate(this.modelName, doc, 'update', context, true);
 
       return doc;
     });

@@ -1,7 +1,12 @@
+import Document from 'mongoose/lib/document';
 import isFunction from 'lodash/isFunction';
 
 export const isPromise = function isPromise(val) {
   return val && val.then && isFunction(val.then);
+};
+
+export const isDocument = function isDocument(doc) {
+  return doc instanceof Document;
 };
 
 export const toAsyncFn = function toAsyncFn(fn: Function, defaultValue?: any) {

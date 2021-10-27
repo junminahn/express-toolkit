@@ -5,14 +5,17 @@ import isArray from 'lodash/isArray';
 import isFunction from 'lodash/isFunction';
 import isNaN from 'lodash/isNaN';
 import isEmpty from 'lodash/isEmpty';
+import isPlainObject from 'lodash/isPlainObject';
 import noop from 'lodash/noop';
-import pick from 'lodash/pick';
+import omit from 'lodash/omit';
 import forEach from 'lodash/forEach';
 import compact from 'lodash/compact';
 import intersection from 'lodash/intersection';
 import { getOption, getModelOption, getModelRef } from './options';
-import { Populate } from './interfaces';
+import { Populate, MiddlewareContext } from './interfaces';
 import Permission from './permission';
+import { isDocument } from './lib';
+import { pick } from 'lodash';
 
 const PERMISSIONS = Symbol('permissions');
 const PERMISSION_KEYS = Symbol('permission-keys');
@@ -25,7 +28,7 @@ const normalizeSelect = (select: string | string[]) => {
     : null;
 };
 
-export async function genIDQuery(modelName, id) {
+export async function genIDQuery(modelName: string, id: string) {
   const identifier = getModelOption(modelName, 'identifier', '_id');
 
   if (isString(identifier)) {
@@ -37,7 +40,7 @@ export async function genIDQuery(modelName, id) {
   return { _id: id };
 }
 
-export async function genQuery(modelName, access = 'read', _query) {
+export async function genQuery(modelName: string, access: string = 'read', _query: any) {
   const baseQueryFn = getModelOption(modelName, `baseQuery.${access}`, null);
   if (!isFunction(baseQueryFn)) return _query || {};
 
@@ -61,14 +64,85 @@ export function genPagination({ page = 1, limit }, hardLimit) {
   return options;
 }
 
-export async function genSelect(modelName, access = 'read', _select) {
-  const select = ['_id'];
+function getModelPermissions(modelName, doc) {
+  const modelPermissionField = getModelOption(modelName, 'permissionField', '_permissions');
+  let modelPermissions = {};
+  if (isDocument(doc)) {
+    modelPermissions = (doc._doc && doc._doc[modelPermissionField]) || {};
+  } else if (isPlainObject(doc)) {
+    modelPermissions = doc[modelPermissionField] || {};
+  }
+
+  return modelPermissions;
+}
+
+function getModelKeys(doc) {
+  return Object.keys(isDocument(doc) ? doc._doc : doc);
+}
+
+function toObject(doc) {
+  return isDocument(doc) ? doc.toObject() : doc;
+}
+
+export async function genAllowedFields(
+  modelName: string,
+  doc: any,
+  access: string,
+  baseFields = [],
+  targetFields: string[] | string | null = null,
+) {
+  targetFields = normalizeSelect(targetFields);
+  let fields = baseFields || [];
 
   const permissionSchema = getModelOption(modelName, 'permissionSchema');
-  if (!permissionSchema) return select;
+  if (!permissionSchema) return fields;
 
   const permissions = this[PERMISSIONS];
+  const modelPermissions = getModelPermissions(modelName, doc);
+  const keys = getModelKeys(doc);
 
+  for (let x = 0; x < keys.length; x++) {
+    const key = keys[x];
+    if (baseFields.includes(key)) continue;
+
+    const val = permissionSchema[key];
+    const value = (val && val[access]) || val;
+
+    if (isBoolean(value)) {
+      if (value) fields.push(key);
+    } else if (isString(value)) {
+      if (permissions.has(value) || modelPermissions[value]) fields.push(key);
+    } else if (isFunction(value)) {
+      if (await value.call(this, permissions, modelPermissions)) fields.push(key);
+    }
+  }
+
+  if (targetFields) {
+    fields = intersection(targetFields, fields);
+  }
+
+  return fields;
+}
+
+export async function pickAllowedFields(
+  modelName: string,
+  doc: any,
+  access: string,
+  baseFields = [],
+  targetFields: string[] | string | null = null,
+) {
+  const allowed = await this._genAllowedFields(modelName, doc, access, baseFields, targetFields);
+  return pick(toObject(doc), allowed);
+}
+
+export async function genSelect(modelName: string, access: string, targetFields: string[] | string | null = null) {
+  targetFields = normalizeSelect(targetFields);
+  let fields = [];
+
+  const permissionSchema = getModelOption(modelName, 'permissionSchema');
+  if (!permissionSchema) return fields;
+
+  const permissions = this[PERMISSIONS];
   const keys = Object.keys(permissionSchema);
   for (let x = 0; x < keys.length; x++) {
     const key = keys[x];
@@ -76,20 +150,27 @@ export async function genSelect(modelName, access = 'read', _select) {
     const value = val[access] || val;
 
     if (isBoolean(value)) {
-      select.push(key);
+      if (value) fields.push(key);
     } else if (isString(value)) {
-      if (permissions[value]) select.push(key);
+      if (permissions.prop(value)) {
+        if (permissions.has(value)) fields.push(key);
+      } else {
+        fields.push(key);
+      }
     } else if (isFunction(value)) {
-      if (await value.call(this, permissions)) select.push(key);
+      fields.push(key);
     }
   }
 
-  _select = normalizeSelect(_select);
+  if (targetFields) {
+    fields = intersection(targetFields, fields);
+  }
 
-  return _select ? intersection(_select, select) : select;
+  const permissionFields = getModelOption(modelName, 'permissionFields', []);
+  return fields.concat(permissionFields);
 }
 
-export async function genPopulate(modelName, access = 'read', _populate) {
+export async function genPopulate(modelName: string, access: string = 'read', _populate: any) {
   if (!_populate) return [];
 
   let populate = Array.isArray(_populate) ? _populate : [_populate];
@@ -120,114 +201,73 @@ export async function genPopulate(modelName, access = 'read', _populate) {
   return populate;
 }
 
-async function genAllowedFields(modelName, doc, access) {
-  const permissionSchema = getModelOption(modelName, 'permissionSchema');
-  if (!permissionSchema) return null;
-
-  const permissions = this[PERMISSIONS];
-  const modelPermissionField = getModelOption(modelName, 'permissionField', '_permissions');
-  const modelPermissions = (doc._doc && doc._doc[modelPermissionField]) || {};
-  const fields = [];
-
-  const keys = Object.keys(permissionSchema);
-  for (let x = 0; x < keys.length; x++) {
-    const key = keys[x];
-    const val = permissionSchema[key];
-    const value = val[access] || val;
-
-    if (isBoolean(value)) {
-      if (value) fields.push(key);
-    } else if (isString(value)) {
-      if (permissions[value] || modelPermissions[value]) fields.push(key);
-    } else if (isFunction(value)) {
-      if (await value.call(this, permissions, modelPermissions)) fields.push(key);
-    }
-  }
-
-  return fields;
-}
-
-export function genEditableFields(modelName, doc) {
-  return genAllowedFields.call(this, modelName, doc, 'update');
-}
-
-export function genCreatableFields(modelName, doc) {
-  return genAllowedFields.call(this, modelName, doc, 'create');
-}
-
-export async function prepare(modelName, allowedData, originalData, access, doc) {
+export async function prepare(modelName: string, allowedData: any, access: string, context: MiddlewareContext = {}) {
   const prepare = getModelOption(modelName, `prepare.${access}`, null);
 
   if (isFunction(prepare)) {
     const permissions = this[PERMISSIONS];
-    allowedData = await prepare.call(this, allowedData, permissions, { original: originalData, document: doc });
+    allowedData = await prepare.call(this, allowedData, permissions, context);
   }
 
   return allowedData;
 }
 
-export async function transform(modelName, doc, access) {
+export async function transform(modelName: string, doc: any, access: string, context: MiddlewareContext = {}) {
   const transform = getModelOption(modelName, `transform.${access}`, null);
-
-  const originalDoc = doc._originalDoc;
-  const originalData = doc._originalData;
-  const preparedData = doc._preparedData;
 
   if (isFunction(transform)) {
     const permissions = this[PERMISSIONS];
-    doc = await transform.call(this, doc, permissions, { originalDoc, originalData, preparedData });
+    doc = await transform.call(this, doc, permissions, context);
   }
 
   return doc;
 }
 
-export async function permit(modelName, doc, access) {
+export async function permit(modelName: string, doc: any, access: string, context: MiddlewareContext = {}) {
   const permit = getModelOption(modelName, `docPermissions.${access}`, null);
   const modelPermissionField = getModelOption(modelName, 'permissionField', '_permissions');
 
   if (isFunction(permit)) {
     const permissions = this[PERMISSIONS];
-    doc._doc[modelPermissionField] = await permit.call(this, doc, permissions, {});
+    doc._doc[modelPermissionField] = await permit.call(this, doc, permissions, context);
   } else {
     doc._doc[modelPermissionField] = {};
   }
 
+  const allowedFields = await this._genAllowedFields(modelName, doc, 'update');
+  // TODO: do we need falsy fields as well?
+  // const permissionSchemaKeys = getModelOption(modelName, 'permissionSchemaKeys');
+
+  // TODO: make it flexible structure
+  forEach(allowedFields, (field) => {
+    doc._doc[modelPermissionField][`edit.${field}`] = true;
+  });
+
   return doc;
 }
 
-export async function decorate(modelName, doc, access, pickFields) {
+export async function decorate(modelName: string, doc: any, access: string, context: MiddlewareContext = {}) {
   const decorate = getModelOption(modelName, `decorate.${access}`, null);
 
-  const originalDoc = doc._originalDoc;
-  const originalData = doc._originalData;
-  const preparedData = doc._preparedData;
-  const modifiedPaths = doc._modifiedPaths;
-
-  doc = doc.toObject();
-
-  if (pickFields) {
-    const fields = await this._genSelect(modelName, 'read');
-    const permissionField = getModelOption(modelName, 'permissionField', '_permissions');
-    doc = pick(doc, fields.concat(permissionField));
-  }
+  const permissions = this[PERMISSIONS];
+  context.modelPermissions = getModelPermissions(modelName, doc);
 
   if (isFunction(decorate)) {
-    const permissions = this[PERMISSIONS];
-    doc = await decorate.call(this, doc, permissions, { originalDoc, originalData, preparedData, modifiedPaths });
+    doc = await decorate.call(this, doc, permissions, context);
   }
 
   return doc;
 }
 
-export async function decorateAll(modelName, docsObject, access) {
+export async function decorateAll(modelName, docs, access) {
   const decorateAll = getModelOption(modelName, `decorateAll.${access}`, null);
 
   if (isFunction(decorateAll)) {
     const permissions = this[PERMISSIONS];
-    docsObject = await decorateAll.call(this, docsObject, permissions, {});
+    docs = await decorateAll.call(this, docs, permissions, {});
   }
 
-  return docsObject;
+  return docs;
 }
 
 export function getPermissions() {
@@ -258,10 +298,10 @@ export function setGenerators(req, res, next) {
   req._genIDQuery = genIDQuery.bind(req);
   req._genQuery = genQuery.bind(req);
   req._genPagination = genPagination.bind(req);
+  req._genAllowedFields = genAllowedFields.bind(req);
   req._genSelect = genSelect.bind(req);
+  req._pickAllowedFields = pickAllowedFields.bind(req);
   req._genPopulate = genPopulate.bind(req);
-  req._genCreatableFields = genCreatableFields.bind(req);
-  req._genEditableFields = genEditableFields.bind(req);
   req._prepare = prepare.bind(req);
   req._transform = transform.bind(req);
   req._permit = permit.bind(req);
