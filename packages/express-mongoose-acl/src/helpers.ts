@@ -46,7 +46,6 @@ export function recurseSchema(schema: any) {
     if (isArray(target) && target.length > 0) {
       if (isSchema(target[0]) || isPlainObject(target[0])) {
         subPaths.push(key);
-        return;
       }
     }
   });

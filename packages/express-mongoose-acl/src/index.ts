@@ -15,7 +15,7 @@ import { ModelRouterProps, MiddlewareContext } from './interfaces';
 const pluralize = mongoose.pluralize();
 const clientErrors = JsonRouter.clientErrors;
 
-type setOption = (keyOrOption: any, option?: any) => void;
+type setOptionType = (keyOrOption: any, option?: any) => void;
 
 function setOption(parentKey: string, optionKey: any, option?: any) {
   const key = isUndefined(option) ? parentKey : `${parentKey}.${optionKey}`;
@@ -229,18 +229,18 @@ class ModelRouter {
     setModelOption(this.modelName, optionKey, option);
   }
 
-  listHardLimit: setOption = setOption.bind(this, 'listHardLimit');
-  permissionSchema: setOption = setOption.bind(this, 'permissionSchema');
-  permissionField: setOption = setOption.bind(this, 'permissionField');
-  permissionFields: setOption = setOption.bind(this, 'permissionFields');
-  docPermissions: setOption = setOption.bind(this, 'docPermissions');
-  routeGuard: setOption = setOption.bind(this, 'routeGuard');
-  baseQuery: setOption = setOption.bind(this, 'baseQuery');
-  decorate: setOption = setOption.bind(this, 'decorate');
-  decorateAll: setOption = setOption.bind(this, 'decorateAll');
-  prepare: setOption = setOption.bind(this, 'prepare');
-  transform: setOption = setOption.bind(this, 'transform');
-  identifier: setOption = setOption.bind(this, 'identifier');
+  listHardLimit: setOptionType = setOption.bind(this, 'listHardLimit');
+  permissionSchema: setOptionType = setOption.bind(this, 'permissionSchema');
+  permissionField: setOptionType = setOption.bind(this, 'permissionField');
+  permissionFields: setOptionType = setOption.bind(this, 'permissionFields');
+  docPermissions: setOptionType = setOption.bind(this, 'docPermissions');
+  routeGuard: setOptionType = setOption.bind(this, 'routeGuard');
+  baseQuery: setOptionType = setOption.bind(this, 'baseQuery');
+  decorate: setOptionType = setOption.bind(this, 'decorate');
+  decorateAll: setOptionType = setOption.bind(this, 'decorateAll');
+  prepare: setOptionType = setOption.bind(this, 'prepare');
+  transform: setOptionType = setOption.bind(this, 'transform');
+  identifier: setOptionType = setOption.bind(this, 'identifier');
 
   get options() {
     return getModelOptions(this.modelName);
