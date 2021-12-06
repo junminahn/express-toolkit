@@ -38,6 +38,7 @@ describe('List Route', async () => {
       .expect('Content-Type', /json/)
       .expect(200)
       .then((response) => {
+        console.log('response.body', response.body);
         expect(response.body.length).to.equal(2);
         done();
       });

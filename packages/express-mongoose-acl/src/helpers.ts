@@ -2,21 +2,20 @@
 import * as mongoose from 'mongoose';
 import isObject from 'lodash/isObject';
 import isEmpty from 'lodash/isEmpty';
-import forEach from 'lodash/forEach';
+import isArray from 'lodash/isArray';
 import isPlainObject from 'lodash/isPlainObject';
+import forEach from 'lodash/forEach';
+
+const isSchema = (val) => val instanceof mongoose.Schema;
+const isObjectIdType = (val) => val === 'ObjectId' || val === mongoose.Schema.Types.ObjectId;
 
 function recurseObject(obj: any) {
-  if (obj instanceof mongoose.Schema) {
+  if (isSchema(obj)) {
     return recurseSchema(obj.tree);
   }
 
   if (!isObject(obj)) return null;
-  if (
-    isPlainObject(obj) &&
-    obj.ref &&
-    obj.type &&
-    (obj.type === 'ObjectId' || obj.type === mongoose.Schema.Types.ObjectId)
-  ) {
+  if (isPlainObject(obj) && obj.ref && isObjectIdType(obj.type)) {
     return obj.ref;
   }
 
@@ -32,13 +31,25 @@ function recurseObject(obj: any) {
 }
 
 export function recurseSchema(schema: any) {
-  const ret = {};
+  const references = {};
+  const subPaths = [];
+
   forEach(schema, (val, key) => {
     const paths = recurseObject(val);
     if (!isEmpty(paths)) {
-      ret[key] = paths;
+      references[key] = paths;
+    }
+
+    // collection subdocuments paths
+    // see https://mongoosejs.com/docs/subdocs.html#subdocuments
+    const target = val.type || val;
+    if (isArray(target) && target.length > 0) {
+      if (isSchema(target[0]) || isPlainObject(target[0])) {
+        subPaths.push(key);
+        return;
+      }
     }
   });
 
-  return ret;
+  return { references, subPaths };
 }

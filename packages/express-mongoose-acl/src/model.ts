@@ -36,10 +36,10 @@ class Model {
   constructor(modelName: string) {
     this.modelName = modelName;
     this.model = mongoose.model(modelName);
-    this.model.collection.indexes({}, (err, result = []) => {
-      this.indexKeys = result.reduce(reducer1, []);
-      this.indexMap = this.indexKeys.reduce(reducer2, {});
-    });
+    // this.model.collection.indexes({}, (err, result = []) => {
+    //   this.indexKeys = result.reduce(reducer1, []);
+    //   this.indexMap = this.indexKeys.reduce(reducer2, {});
+    // });
   }
 
   new() {
@@ -52,7 +52,7 @@ class Model {
   }
 
   find({ query, select, sort, populate, limit, skip }: FindProps) {
-    sort = this.pruneSort(sort);
+    // sort = this.pruneSort(sort);
 
     let builder = this.model.find(query);
     if (select) builder = builder.select(select);

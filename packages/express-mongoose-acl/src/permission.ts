@@ -43,3 +43,6 @@ class Permission {
 }
 
 export default Permission;
+export interface Permissions extends Permission {
+  [key: string]: any;
+}

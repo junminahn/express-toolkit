@@ -2,20 +2,21 @@ import get from 'lodash/get';
 import isBoolean from 'lodash/isBoolean';
 import isString from 'lodash/isString';
 import isArray from 'lodash/isArray';
+import castArray from 'lodash/castArray';
 import isFunction from 'lodash/isFunction';
 import isNaN from 'lodash/isNaN';
 import isEmpty from 'lodash/isEmpty';
 import isPlainObject from 'lodash/isPlainObject';
 import noop from 'lodash/noop';
-import omit from 'lodash/omit';
+import pick from 'lodash/pick';
 import forEach from 'lodash/forEach';
 import compact from 'lodash/compact';
 import intersection from 'lodash/intersection';
-import { getOption, getModelOption, getModelRef } from './options';
+import { getRootOption, getModelOption, getModelRef } from './options';
 import { Populate, MiddlewareContext } from './interfaces';
-import Permission from './permission';
+import Permission, { Permissions } from './permission';
+import Controller from './controller';
 import { isDocument } from './lib';
-import { pick } from 'lodash';
 
 const PERMISSIONS = Symbol('permissions');
 const PERMISSION_KEYS = Symbol('permission-keys');
@@ -26,6 +27,22 @@ const normalizeSelect = (select: string | string[]) => {
     : isString(select)
     ? select.split(' ').map((v) => v.trim())
     : null;
+};
+
+const callMiddleware = async (
+  middleware: Function | Function[],
+  doc: any,
+  permissions: Permissions,
+  context: MiddlewareContext,
+) => {
+  middleware = castArray(middleware);
+  for (let x = 0; x < middleware.length; x++) {
+    if (isFunction(middleware[x])) {
+      doc = await middleware[x].call(this, doc, permissions, context);
+    }
+  }
+
+  return doc;
 };
 
 export async function genIDQuery(modelName: string, id: string) {
@@ -99,7 +116,9 @@ export async function genAllowedFields(
 
   const permissions = this[PERMISSIONS];
   const modelPermissions = getModelPermissions(modelName, doc);
-  const keys = getModelKeys(doc);
+  // get keys from permission schema as some fields might not be filled when created
+  const keys = Object.keys(permissionSchema);
+  // const keys = getModelKeys(doc);
 
   for (let x = 0; x < keys.length; x++) {
     const key = keys[x];
@@ -203,24 +222,14 @@ export async function genPopulate(modelName: string, access: string = 'read', _p
 
 export async function prepare(modelName: string, allowedData: any, access: string, context: MiddlewareContext = {}) {
   const prepare = getModelOption(modelName, `prepare.${access}`, null);
-
-  if (isFunction(prepare)) {
-    const permissions = this[PERMISSIONS];
-    allowedData = await prepare.call(this, allowedData, permissions, context);
-  }
-
-  return allowedData;
+  const permissions = this[PERMISSIONS];
+  return callMiddleware(prepare, allowedData, permissions, context);
 }
 
 export async function transform(modelName: string, doc: any, access: string, context: MiddlewareContext = {}) {
   const transform = getModelOption(modelName, `transform.${access}`, null);
-
-  if (isFunction(transform)) {
-    const permissions = this[PERMISSIONS];
-    doc = await transform.call(this, doc, permissions, context);
-  }
-
-  return doc;
+  const permissions = this[PERMISSIONS];
+  return callMiddleware(transform, doc, permissions, context);
 }
 
 export async function permit(modelName: string, doc: any, access: string, context: MiddlewareContext = {}) {
@@ -252,26 +261,18 @@ export async function decorate(modelName: string, doc: any, access: string, cont
   const permissions = this[PERMISSIONS];
   context.modelPermissions = getModelPermissions(modelName, doc);
 
-  if (isFunction(decorate)) {
-    doc = await decorate.call(this, doc, permissions, context);
-  }
-
-  return doc;
+  return callMiddleware(decorate, doc, permissions, context);
 }
 
 export async function decorateAll(modelName, docs, access) {
   const decorateAll = getModelOption(modelName, `decorateAll.${access}`, null);
+  const permissions = this[PERMISSIONS];
 
-  if (isFunction(decorateAll)) {
-    const permissions = this[PERMISSIONS];
-    docs = await decorateAll.call(this, docs, permissions, {});
-  }
-
-  return docs;
+  return callMiddleware(decorateAll, docs, permissions, {});
 }
 
 export function getPermissions() {
-  const permissionField = getOption('permissionField');
+  const permissionField = getRootOption('permissionField');
   return new Permission(this[permissionField] || {});
 }
 
@@ -294,6 +295,10 @@ export async function isAllowed(modelName, access) {
   return allowed;
 }
 
+export function macl(modelName: string) {
+  return new Controller(this, modelName);
+}
+
 export function setGenerators(req, res, next) {
   req._genIDQuery = genIDQuery.bind(req);
   req._genQuery = genQuery.bind(req);
@@ -309,6 +314,7 @@ export function setGenerators(req, res, next) {
   req._decorateAll = decorateAll.bind(req);
   req._getPermissions = getPermissions.bind(req);
   req._isAllowed = isAllowed.bind(req);
+  req.macl = macl.bind(req);
   req[PERMISSIONS] = req._getPermissions();
   req[PERMISSION_KEYS] = req[PERMISSIONS].$_permissionKeys;
   next();

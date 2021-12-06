@@ -4,6 +4,7 @@ const router = express.Router();
 import auth from './auth';
 import { NODE_ENV } from '../config';
 import ModelRouter from '../../src';
+import { Permissions } from '../../src/permission';
 
 const userRouter = new ModelRouter('User', {
   baseUrl: null,
@@ -33,7 +34,7 @@ const userRouter = new ModelRouter('User', {
     return p;
   },
   baseQuery: {
-    list: (permissions) => {
+    list: (permissions: Permissions) => {
       if (permissions.isAdmin) return {};
       else return { $or: [{ _id: permissions.userId }, { public: true }] };
     },
@@ -51,9 +52,16 @@ const userRouter = new ModelRouter('User', {
     },
   },
   decorate: {
-    update: function (doc) {
-      return doc;
-    },
+    default: [
+      function (doc) {
+        console.log('updateupdate1');
+        return doc;
+      },
+      function (doc) {
+        console.log('updateupdate2');
+        return doc;
+      },
+    ],
   },
   routeGuard: true,
 });
