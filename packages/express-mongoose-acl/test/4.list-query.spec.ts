@@ -160,4 +160,21 @@ describe('List-Query Users', () => {
     expect(response.body[0].name).to.equal('john');
     expect(response.body[0].orgs[0]).to.be.a('object');
   });
+
+  it('should return the passed field selection only', async () => {
+    const response = await request(app)
+      .post('/api/users/__query')
+      .set('user', 'admin')
+      .send({ query: {}, select: '_id' })
+      .expect('Content-Type', /json/)
+      .expect(200);
+
+    expect(response.body[0]._id).to.exist;
+    expect(response.body[0].name).to.not.exist;
+    expect(response.body[0].orgs).to.not.exist;
+
+    expect(response.body[1]._id).to.exist;
+    expect(response.body[1].name).to.not.exist;
+    expect(response.body[1].orgs).to.not.exist;
+  });
 });

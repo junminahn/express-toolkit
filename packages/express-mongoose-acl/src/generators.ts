@@ -187,7 +187,7 @@ export async function genSelect(modelName: string, access: string, targetFields:
   }
 
   const permissionFields = getModelOption(modelName, 'permissionFields', []);
-  return fields.concat(permissionFields);
+  return fields.concat(permissionFields).concat(['_id']);
 }
 
 export async function genPopulate(modelName: string, access: string = 'read', _populate: any) {

@@ -84,4 +84,17 @@ describe('Read-Query User', () => {
     expect(response.body.name).to.equal('lucy2');
     expect(response.body.orgs[0]).to.be.a('object');
   });
+
+  it('should return the passed field selection only', async () => {
+    const response = await request(app)
+      .post('/api/users/__query/lucy2')
+      .set('user', 'admin')
+      .send({ select: '_id' })
+      .expect('Content-Type', /json/)
+      .expect(200);
+
+    expect(response.body._id).to.exist;
+    expect(response.body.name).to.not.exist;
+    expect(response.body.orgs).to.not.exist;
+  });
 });
