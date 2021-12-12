@@ -74,7 +74,7 @@ class ModelRouter {
       const { limit, page, include_permissions = 'true', include_count = 'false' } = req.query;
 
       const model = req.macl(this.modelName);
-      return model.listQuery({
+      return model.list({
         limit,
         page,
         options: {
@@ -95,7 +95,7 @@ class ModelRouter {
       const { includePermissions = true, includeCount = false, populateAccess = 'read' } = options;
 
       const model = req.macl(this.modelName);
-      return model.listQuery({
+      return model.list({
         query,
         select,
         sort,
@@ -147,9 +147,8 @@ class ModelRouter {
 
       const { id } = req.params;
       const { include_permissions = 'true', try_list = 'true' } = req.query;
-
       const model = req.macl(this.modelName);
-      return model.readQuery(id, {
+      return model.read(id, {
         options: {
           includePermissions: include_permissions !== 'false',
           tryList: try_list === 'true',
@@ -169,7 +168,7 @@ class ModelRouter {
       const { includePermissions = true, tryList = true, populateAccess = 'read' } = options;
 
       const model = req.macl(this.modelName);
-      return model.readQuery(id, {
+      return model.read(id, {
         select,
         populate,
         options: { includePermissions, tryList, populateAccess },
@@ -210,7 +209,7 @@ class ModelRouter {
 
       const { field } = req.params;
       const model = req.macl(this.modelName);
-      return model.distinctQuery(field);
+      return model.distinct(field);
     });
 
     this.router.post(`${this.basename}/distinct/:field`, setGenerators, async (req, res) => {
@@ -221,7 +220,28 @@ class ModelRouter {
       const { query } = req.body;
 
       const model = req.macl(this.modelName);
-      return model.distinctQuery(field, { query });
+      return model.distinct(field, { query });
+    });
+
+    ///////////
+    // COUNT //
+    ///////////
+    this.router.get(`${this.basename}/count`, setGenerators, async (req, res) => {
+      const allowed = await req._isAllowed(this.modelName, 'count');
+      if (!allowed) throw new clientErrors.UnauthorizedError();
+
+      const model = req.macl(this.modelName);
+      return model.count({});
+    });
+
+    this.router.post(`${this.basename}/count`, setGenerators, async (req, res) => {
+      const allowed = await req._isAllowed(this.modelName, 'count');
+      if (!allowed) throw new clientErrors.UnauthorizedError();
+
+      const { query, access } = req.body;
+
+      const model = req.macl(this.modelName);
+      return model.count(query, access);
     });
   }
 

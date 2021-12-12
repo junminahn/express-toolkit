@@ -11,7 +11,7 @@ const isObjectIdType = (val) => val === 'ObjectId' || val === mongoose.Schema.Ty
 
 function recurseObject(obj: any) {
   if (isSchema(obj)) {
-    return recurseSchema(obj.tree);
+    return buildRefs(obj.tree);
   }
 
   if (!isObject(obj)) return null;
@@ -30,7 +30,7 @@ function recurseObject(obj: any) {
   return ret;
 }
 
-export function recurseSchema(schema: any) {
+export function buildRefs(schema: any) {
   const references = {};
   const subPaths = [];
 
@@ -50,5 +50,22 @@ export function recurseSchema(schema: any) {
     }
   });
 
-  return { references, subPaths };
+  return references;
+}
+
+export function buildSubPaths(schema: any) {
+  const subPaths = [];
+
+  forEach(schema, (val, key) => {
+    // collection subdocuments paths
+    // see https://mongoosejs.com/docs/subdocs.html#subdocuments
+    const target = val.type || val;
+    if (isArray(target) && target.length > 0) {
+      if (isSchema(target[0]) || isPlainObject(target[0])) {
+        subPaths.push(key);
+      }
+    }
+  });
+
+  return subPaths;
 }

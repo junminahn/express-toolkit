@@ -3,81 +3,12 @@ const router = express.Router();
 
 import auth from './auth';
 import { NODE_ENV } from '../config';
-import ModelRouter from '../../src';
-import { Permissions } from '../../src/permission';
-
-const userRouter = new ModelRouter('User', {
-  baseUrl: null,
-  permissionSchema: {
-    name: { list: true, read: true, create: true },
-    role: { list: true, read: true },
-    statusHistory: {
-      list: (permissions) => {
-        return permissions.isAdmin;
-      },
-      read: (permissions) => {
-        return permissions.isAdmin;
-      },
-    },
-    orgs: { list: false, read: true },
-  },
-  docPermissions: function (doc, permissions) {
-    const p = {
-      'edit.name': permissions.isAdmin,
-      'edit.status': permissions.isAdmin,
-    };
-
-    if (String(doc._id) === String(permissions.userId)) {
-      p['edit.name'] = true;
-    }
-
-    return p;
-  },
-  baseQuery: {
-    list: (permissions: Permissions) => {
-      if (permissions.isAdmin) return {};
-      else return { $or: [{ _id: permissions.userId }, { public: true }] };
-    },
-    read: (permissions) => {
-      if (permissions.isAdmin) return {};
-      else return { _id: permissions.userId };
-    },
-    update: (permissions) => {
-      if (permissions.isAdmin) return {};
-      else return { _id: permissions.userId };
-    },
-    delete: (permissions) => {
-      if (permissions.isAdmin) return {};
-      else return { _id: permissions.userId };
-    },
-  },
-  decorate: {
-    default: [
-      function (doc) {
-        console.log('updateupdate1');
-        return doc;
-      },
-      function (doc) {
-        console.log('updateupdate2');
-        return doc;
-      },
-    ],
-  },
-  routeGuard: true,
-});
-
-const orgRouter = new ModelRouter('Org', {
-  baseUrl: null,
-  permissionSchema: { name: { read: true } },
-  docPermissions: () => {
-    return { read: false, edit: true };
-  },
-  routeGuard: true,
-});
+import userRoutes from './user';
+import orgRoutes from './org';
 
 router.use('/auth', auth);
-router.use('/', userRouter.routes);
-router.use('/', orgRouter.routes);
+router.use('/', userRoutes);
+router.use('/', orgRoutes);
 
 // catch 404 and forward to error handler
 router.use((req, res, next) => {

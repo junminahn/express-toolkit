@@ -68,6 +68,7 @@ const initExpresss = async (options?: Props) => {
       user = await User.findOne({ name: userName });
     }
 
+    req._user = user;
     req._permissions = { isAdmin: user?.role === 'admin', userId: user?._id };
     next();
   });
@@ -87,6 +88,7 @@ declare global {
   namespace Express {
     interface Request {
       _permissions?: any;
+      _user?: any;
     }
   }
 

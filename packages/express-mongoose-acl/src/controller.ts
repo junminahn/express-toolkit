@@ -21,13 +21,13 @@ class Controller {
     this.options = getModelOptions(modelName);
   }
 
-  async listQuery({ query, select, sort, populate, limit, page, options = {} }) {
+  async list({ query, select, sort, populate, limit, page, options = {} }) {
     const { includePermissions = true, includeCount = false, populateAccess = 'read' } = options as any;
 
     let pagination = null;
     [query, select, populate, pagination] = await Promise.all([
       this.req._genQuery(this.modelName, 'list', query),
-      this.req._genSelect(this.modelName, 'list', query),
+      this.req._genSelect(this.modelName, 'list', select),
       this.req._genPopulate(this.modelName, populateAccess, populate),
       this.req._genPagination({ limit, page }, this.options.listHardLimit),
     ]);
@@ -96,7 +96,7 @@ class Controller {
     return this.model.new();
   }
 
-  async readQuery(id, { select, populate, options = {} }) {
+  async read(id, { select, populate, options = {} }) {
     const { includePermissions = true, tryList = true, populateAccess = 'read' } = options as any;
 
     let query = null;
@@ -168,10 +168,11 @@ class Controller {
     let doc = await this.model.findOneAndRemove(query);
     if (!doc) return null;
 
-    return true;
+    await doc.remove();
+    return doc._id;
   }
 
-  async distinctQuery(field, options = {}) {
+  async distinct(field, options = {}) {
     let { query } = options as any;
 
     query = await this.req._genQuery(this.modelName, 'read', query);
@@ -181,6 +182,13 @@ class Controller {
     if (!result) return null;
 
     return result;
+  }
+
+  async count(query, access = 'list') {
+    query = await this.req._genQuery(this.modelName, access, query);
+    if (query === false) return 0;
+
+    return this.model.countDocuments(query);
   }
 }
 

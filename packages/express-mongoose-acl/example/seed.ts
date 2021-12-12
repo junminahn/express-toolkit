@@ -19,6 +19,8 @@ export const seed = async () => {
   const document2 = await Document.create({ name: 'document2' });
   const document3 = await Document.create({ name: 'document3' });
 
+  const admin = await User.create({ name: 'admin', role: 'admin' });
+
   const user1 = await User.create({
     name: 'user1',
     role: 'admin',
@@ -44,5 +46,5 @@ export const seed = async () => {
     public: true,
   });
 
-  return { user1, user2, user3, org1, org2 };
+  return { admin, user1, user2, user3, org1, org2 };
 };

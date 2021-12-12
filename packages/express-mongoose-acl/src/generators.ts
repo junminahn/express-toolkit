@@ -30,6 +30,7 @@ const normalizeSelect = (select: string | string[]) => {
 };
 
 const callMiddleware = async (
+  req: any,
   middleware: Function | Function[],
   doc: any,
   permissions: Permissions,
@@ -38,7 +39,7 @@ const callMiddleware = async (
   middleware = castArray(middleware);
   for (let x = 0; x < middleware.length; x++) {
     if (isFunction(middleware[x])) {
-      doc = await middleware[x].call(this, doc, permissions, context);
+      doc = await middleware[x].call(req, doc, permissions, context);
     }
   }
 
@@ -223,13 +224,13 @@ export async function genPopulate(modelName: string, access: string = 'read', _p
 export async function prepare(modelName: string, allowedData: any, access: string, context: MiddlewareContext = {}) {
   const prepare = getModelOption(modelName, `prepare.${access}`, null);
   const permissions = this[PERMISSIONS];
-  return callMiddleware(prepare, allowedData, permissions, context);
+  return callMiddleware(this, prepare, allowedData, permissions, context);
 }
 
 export async function transform(modelName: string, doc: any, access: string, context: MiddlewareContext = {}) {
   const transform = getModelOption(modelName, `transform.${access}`, null);
   const permissions = this[PERMISSIONS];
-  return callMiddleware(transform, doc, permissions, context);
+  return callMiddleware(this, transform, doc, permissions, context);
 }
 
 export async function permit(modelName: string, doc: any, access: string, context: MiddlewareContext = {}) {
@@ -261,14 +262,14 @@ export async function decorate(modelName: string, doc: any, access: string, cont
   const permissions = this[PERMISSIONS];
   context.modelPermissions = getModelPermissions(modelName, doc);
 
-  return callMiddleware(decorate, doc, permissions, context);
+  return callMiddleware(this, decorate, doc, permissions, context);
 }
 
 export async function decorateAll(modelName, docs, access) {
   const decorateAll = getModelOption(modelName, `decorateAll.${access}`, null);
   const permissions = this[PERMISSIONS];
 
-  return callMiddleware(decorateAll, docs, permissions, {});
+  return callMiddleware(this, decorateAll, docs, permissions, {});
 }
 
 export function getPermissions() {

@@ -1,6 +1,6 @@
 {
   "name": "express-mongoose-acl",
-  "version": "0.1.0-alpha-54",
+  "version": "0.1.0-alpha-59",
   "description": "REST API Access control built in Express and Mongoose",
   "license": "MIT",
   "main": "./lib/index.js",

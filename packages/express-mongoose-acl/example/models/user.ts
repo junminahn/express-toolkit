@@ -16,8 +16,6 @@ const UserSchema = new mongoose.Schema({
   name: { type: String, required: true },
   role: { type: String, enum: ['admin', 'user'] },
   statusHistory: { type: [Status], default: [] },
-  statusHistory2: [new mongoose.Schema({ name: 'string' })],
-  statusHistory3: [{ name: 'string' }],
   orgs: [{ type: 'ObjectId', ref: 'Org' }],
   public: { type: Boolean, default: false },
 });

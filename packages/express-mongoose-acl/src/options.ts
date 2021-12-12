@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import get from 'lodash/get';
 import set from 'lodash/set';
 import mapValues from 'lodash/reduce';
-import { recurseSchema } from './helpers';
+import { buildRefs, buildSubPaths } from './helpers';
 import { ModelRouterProps } from './interfaces';
 
 const modelRefs = {};
@@ -10,7 +10,10 @@ const modelSubs = {};
 const modelNames = Object.keys(mongoose.models);
 modelNames.forEach((modelName) => {
   // @ts-ignore
-  const { references, subPaths } = recurseSchema(mongoose.models[modelName].schema.tree);
+  const references = buildRefs(mongoose.models[modelName].schema.tree);
+  // @ts-ignore
+  const subPaths = buildSubPaths(mongoose.models[modelName].schema.tree);
+  console.log(modelName, references, subPaths);
   modelRefs[modelName] = references;
   modelSubs[modelName] = subPaths;
 });
@@ -55,8 +58,8 @@ export const getModelOption = (modelName: string, optionKey: string, defaultValu
   if (keys.length === 1) return get(modelOptions, `${modelName}.${optionKey}`, defaultValue);
 
   let option = get(modelOptions, `${modelName}.${optionKey}`, undefined);
+  if (option === undefined) option = get(modelOptions, `${modelName}.${keys[0]}.default`);
   if (option === undefined) option = get(modelOptions, `${modelName}.${keys[0]}`, defaultValue);
-  if (option === undefined) option = get(modelOptions, `${modelName}.default`);
   return option;
 };
 

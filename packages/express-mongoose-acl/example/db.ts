@@ -2,7 +2,7 @@
 import chalk from 'chalk';
 import mongoose from 'mongoose';
 
-mongoose.set('debug', true);
+mongoose.set('debug', false);
 
 import { DATABASE_URI } from './config';
 
