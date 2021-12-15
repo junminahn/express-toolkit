@@ -27,13 +27,17 @@ describe('Update Users', () => {
 
   it('should update an user `lucy` by admin', async () => {
     const orgs = await mongoose.model('Org').find({ name: ['blue', 'purple'] });
+    const statusDocument = await mongoose.model('Document').create({ name: 'registration form' });
 
     const response = await request(app)
       .put('/api/users/lucy')
       .set('user', 'admin')
       .send({
         orgs: orgs.map((org) => org._id),
-        statusHistory: [{ name: 'junior', approved: false }],
+        statusHistory: [
+          { name: 'junior', approved: false, document: statusDocument },
+          { name: 'senior', approved: true },
+        ],
       })
       .expect('Content-Type', /json/)
       .expect(200);

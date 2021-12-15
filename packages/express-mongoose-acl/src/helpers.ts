@@ -3,11 +3,13 @@ import * as mongoose from 'mongoose';
 import isObject from 'lodash/isObject';
 import isEmpty from 'lodash/isEmpty';
 import isArray from 'lodash/isArray';
+import isString from 'lodash/isString';
 import isPlainObject from 'lodash/isPlainObject';
 import forEach from 'lodash/forEach';
 
 const isSchema = (val) => val instanceof mongoose.Schema;
 const isObjectIdType = (val) => val === 'ObjectId' || val === mongoose.Schema.Types.ObjectId;
+const isReference = (val) => isPlainObject(val) && val.ref && isObjectIdType(val.type);
 
 function recurseObject(obj: any) {
   if (isSchema(obj)) {
@@ -15,7 +17,7 @@ function recurseObject(obj: any) {
   }
 
   if (!isObject(obj)) return null;
-  if (isPlainObject(obj) && obj.ref && isObjectIdType(obj.type)) {
+  if (isReference(obj)) {
     return obj.ref;
   }
 
@@ -61,7 +63,7 @@ export function buildSubPaths(schema: any) {
     // see https://mongoosejs.com/docs/subdocs.html#subdocuments
     const target = val.type || val;
     if (isArray(target) && target.length > 0) {
-      if (isSchema(target[0]) || isPlainObject(target[0])) {
+      if (isSchema(target[0]) || (isPlainObject(target[0]) && !isReference(target[0]))) {
         subPaths.push(key);
       }
     }
@@ -69,3 +71,11 @@ export function buildSubPaths(schema: any) {
 
   return subPaths;
 }
+
+export const normalizeSelect = (select: string | string[]) => {
+  return Array.isArray(select)
+    ? select.map((v) => v.trim())
+    : isString(select)
+    ? select.split(' ').map((v) => v.trim())
+    : null;
+};

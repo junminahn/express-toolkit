@@ -16,18 +16,11 @@ import { getRootOption, getModelOption, getModelRef } from './options';
 import { Populate, MiddlewareContext } from './interfaces';
 import Permission, { Permissions } from './permission';
 import Controller from './controller';
+import { normalizeSelect } from './helpers';
 import { isDocument } from './lib';
 
 const PERMISSIONS = Symbol('permissions');
 const PERMISSION_KEYS = Symbol('permission-keys');
-
-const normalizeSelect = (select: string | string[]) => {
-  return Array.isArray(select)
-    ? select.map((v) => v.trim())
-    : isString(select)
-    ? select.split(' ').map((v) => v.trim())
-    : null;
-};
 
 const callMiddleware = async (
   req: any,
@@ -155,11 +148,17 @@ export async function pickAllowedFields(
   return pick(toObject(doc), allowed);
 }
 
-export async function genSelect(modelName: string, access: string, targetFields: string[] | string | null = null) {
+export async function genSelect(
+  modelName: string,
+  access: string,
+  targetFields: string[] | string | null = null,
+  skipChecks = true,
+  subPaths = [],
+) {
   targetFields = normalizeSelect(targetFields);
   let fields = [];
 
-  const permissionSchema = getModelOption(modelName, 'permissionSchema');
+  const permissionSchema = getModelOption(modelName, ['permissionSchema'].concat(subPaths).join('.'));
   if (!permissionSchema) return fields;
 
   const permissions = this[PERMISSIONS];
@@ -174,7 +173,7 @@ export async function genSelect(modelName: string, access: string, targetFields:
     } else if (isString(value)) {
       if (permissions.prop(value)) {
         if (permissions.has(value)) fields.push(key);
-      } else {
+      } else if (skipChecks) {
         fields.push(key);
       }
     } else if (isFunction(value)) {
@@ -183,11 +182,11 @@ export async function genSelect(modelName: string, access: string, targetFields:
   }
 
   if (targetFields) {
-    fields = intersection(targetFields, fields);
+    fields = intersection(targetFields, fields.concat(['_id']));
   }
 
-  const permissionFields = getModelOption(modelName, 'permissionFields', []);
-  return fields.concat(permissionFields).concat(['_id']);
+  const permissionFields = subPaths.length > 0 ? [] : getModelOption(modelName, 'permissionFields', []);
+  return fields.concat(permissionFields);
 }
 
 export async function genPopulate(modelName: string, access: string = 'read', _populate: any) {
@@ -208,7 +207,7 @@ export async function genPopulate(modelName: string, access: string = 'read', _p
         if (!refModelName) return null;
 
         if (!isString(p) && p.access) access = p.access;
-        ret.select = await this._genSelect(refModelName, access, ret.select);
+        ret.select = await this._genSelect(refModelName, access, ret.select, false);
         const query = await this._genQuery(refModelName, access, null);
         if (query === false) return null;
 

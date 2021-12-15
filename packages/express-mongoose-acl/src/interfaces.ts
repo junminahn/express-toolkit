@@ -7,6 +7,7 @@ interface Access {
   update?: ValidationType;
   delete?: ValidationType;
   distinct?: ValidationType;
+  sub?: any;
 }
 
 interface PermissionSchema {
@@ -42,6 +43,11 @@ export interface Populate {
   select?: string | string[];
   match?: any;
   access?: string;
+}
+
+export interface SubPopulate {
+  path: string;
+  select?: string | string[];
 }
 
 interface keyValue {

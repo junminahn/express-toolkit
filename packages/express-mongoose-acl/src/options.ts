@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import get from 'lodash/get';
 import set from 'lodash/set';
-import mapValues from 'lodash/reduce';
+import reduce from 'lodash/reduce';
 import { buildRefs, buildSubPaths } from './helpers';
 import { ModelRouterProps } from './interfaces';
 
@@ -58,9 +58,13 @@ export const getModelOption = (modelName: string, optionKey: string, defaultValu
   if (keys.length === 1) return get(modelOptions, `${modelName}.${optionKey}`, defaultValue);
 
   let option = get(modelOptions, `${modelName}.${optionKey}`, undefined);
-  if (option === undefined) option = get(modelOptions, `${modelName}.${keys[0]}.default`);
-  if (option === undefined) option = get(modelOptions, `${modelName}.${keys[0]}`, defaultValue);
+  if (option) return option;
+
+  const parentKey = keys.slice(0, -1).join('.');
+  option = get(modelOptions, `${modelName}.${parentKey}.default`);
+  if (option === undefined) option = get(modelOptions, `${modelName}.${parentKey}`, defaultValue);
   return option;
 };
 
 export const getModelRef = (modelName: string, refPath: string) => get(modelRefs, `${modelName}.${refPath}`, null);
+export const getModelSub = (modelName: string) => get(modelSubs, modelName, null);

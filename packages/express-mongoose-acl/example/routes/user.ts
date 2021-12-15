@@ -27,6 +27,11 @@ const userRouter = new ModelRouter('User', {
       update: (permissions, modelPermissions) => {
         return modelPermissions['edit.statusHistory'];
       },
+      sub: {
+        name: { list: true, read: true, update: true, create: true },
+        approved: { list: true, read: true, update: false, create: true },
+        document: { list: false, read: true, update: true, create: true },
+      },
     },
     orgs: { list: true, read: true, update: 'edit.orgs' },
   },
@@ -59,6 +64,26 @@ const userRouter = new ModelRouter('User', {
       if (permissions.isAdmin) return {};
       else return { _id: permissions.userId };
     },
+    subs: {
+      statusHistory: {
+        list: (permissions: Permissions) => {
+          if (permissions.isAdmin) return {};
+          else return { approved: true };
+        },
+        read: (permissions) => {
+          if (permissions.isAdmin) return {};
+          else return { approved: true };
+        },
+        update: (permissions) => {
+          if (permissions.isAdmin) return {};
+          else return false;
+        },
+        delete: (permissions) => {
+          if (permissions.isAdmin) return {};
+          else return false;
+        },
+      },
+    },
   },
   decorate: {
     default: [
@@ -78,6 +103,9 @@ userRouter.routeGuard({
   update: true,
   delete: 'isAdmin',
   create: 'isAdmin',
+  subs: {
+    statusHistory: { list: true, read: true, update: true, delete: 'isAdmin', create: 'isAdmin' },
+  },
 });
 
 userRouter.identifier(function (id) {

@@ -9,7 +9,7 @@ import intersection from 'lodash/intersection';
 import Model from './model';
 
 import { setGenerators } from './generators';
-import { setModelOptions, setModelOption, getModelOptions } from './options';
+import { setModelOptions, setModelOption, getModelOptions, getModelSub } from './options';
 import { ModelRouterProps, MiddlewareContext } from './interfaces';
 
 const pluralize = mongoose.pluralize();
@@ -58,6 +58,7 @@ class ModelRouter {
 
     this.setCollectionRoutes();
     this.setDocumentRoutes();
+    this.setSubDocumentRoutes();
   }
 
   ///////////////////////
@@ -243,6 +244,101 @@ class ModelRouter {
       const model = req.macl(this.modelName);
       return model.count(query, access);
     });
+  }
+
+  /////////////////////////
+  // Sub-Document Routes //
+  /////////////////////////
+  private setSubDocumentRoutes() {
+    const subs = getModelSub(this.modelName);
+
+    for (let x = 0; x < subs.length; x++) {
+      const sub = subs[x];
+
+      //////////
+      // LIST //
+      //////////
+      this.router.get(`${this.basename}/:id/${sub}`, setGenerators, async (req, res) => {
+        const allowed = await req._isAllowed(this.modelName, `subs.${sub}.list`);
+        if (!allowed) throw new clientErrors.UnauthorizedError();
+
+        const { id } = req.params;
+        const model = req.macl(this.modelName);
+        return model.listSub(id, sub);
+      });
+
+      //////////////////
+      // LIST - QUERY //
+      //////////////////
+      this.router.post(`${this.basename}/:id/${sub}/__query`, setGenerators, async (req, res) => {
+        const allowed = await req._isAllowed(this.modelName, `subs.${sub}.list`);
+        if (!allowed) throw new clientErrors.UnauthorizedError();
+
+        const { id } = req.params;
+        const model = req.macl(this.modelName);
+        return model.listSub(id, sub, req.body);
+      });
+
+      //////////
+      // READ //
+      //////////
+      this.router.get(`${this.basename}/:id/${sub}/:subId`, setGenerators, async (req, res) => {
+        const allowed = await req._isAllowed(this.modelName, `subs.${sub}.read`);
+        if (!allowed) throw new clientErrors.UnauthorizedError();
+
+        const { id, subId } = req.params;
+        const model = req.macl(this.modelName);
+        return model.readSub(id, sub, subId);
+      });
+
+      //////////////////
+      // READ - QUERY //
+      //////////////////
+      this.router.post(`${this.basename}/:id/${sub}/:subId/__query`, setGenerators, async (req, res) => {
+        const allowed = await req._isAllowed(this.modelName, `subs.${sub}.read`);
+        if (!allowed) throw new clientErrors.UnauthorizedError();
+
+        const { id, subId } = req.params;
+        const model = req.macl(this.modelName);
+        return model.readSub(id, sub, subId, req.body);
+      });
+
+      ////////////
+      // UPDATE //
+      ////////////
+      this.router.put(`${this.basename}/:id/${sub}/:subId`, setGenerators, async (req, res) => {
+        const allowed = await req._isAllowed(this.modelName, `subs.${sub}.update`);
+        if (!allowed) throw new clientErrors.UnauthorizedError();
+
+        const { id, subId } = req.params;
+        const model = req.macl(this.modelName);
+        return model.updateSub(id, sub, subId, req.body);
+      });
+
+      ////////////
+      // CREATE //
+      ////////////
+      this.router.post(`${this.basename}/:id/${sub}`, setGenerators, async (req, res) => {
+        const allowed = await req._isAllowed(this.modelName, `subs.${sub}.create`);
+        if (!allowed) throw new clientErrors.UnauthorizedError();
+
+        const { id } = req.params;
+        const model = req.macl(this.modelName);
+        return model.createSub(id, sub, req.body);
+      });
+
+      ////////////
+      // DELETE //
+      ////////////
+      this.router.delete(`${this.basename}/:id/${sub}/:subId`, setGenerators, async (req, res) => {
+        const allowed = await req._isAllowed(this.modelName, `subs.${sub}.delete`);
+        if (!allowed) throw new clientErrors.UnauthorizedError();
+
+        const { id, subId } = req.params;
+        const model = req.macl(this.modelName);
+        return model.deleteSub(id, sub, subId);
+      });
+    }
   }
 
   set(optionKey: string, option: any) {

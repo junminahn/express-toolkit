@@ -1,12 +1,15 @@
 import get from 'lodash/get';
 import pick from 'lodash/pick';
 import isNil from 'lodash/isNil';
-import isUndefined from 'lodash/isUndefined';
+import isArray from 'lodash/isArray';
+import isPlainObject from 'lodash/isPlainObject';
 import isString from 'lodash/isString';
-import intersection from 'lodash/intersection';
+import isMatch from 'lodash/isMatch';
+import filter from 'lodash/filter';
 import Model from './model';
 import { setModelOptions, setModelOption, getModelOptions } from './options';
-import { ModelRouterProps, MiddlewareContext } from './interfaces';
+import { normalizeSelect } from './helpers';
+import { ModelRouterProps, MiddlewareContext, SubPopulate } from './interfaces';
 
 class Controller {
   req: any;
@@ -96,7 +99,7 @@ class Controller {
     return this.model.new();
   }
 
-  async read(id, { select, populate, options = {} }) {
+  async read(id, { select = [], populate = [], options = {} } = {}) {
     const { includePermissions = true, tryList = true, populateAccess = 'read' } = options as any;
 
     let query = null;
@@ -189,6 +192,138 @@ class Controller {
     if (query === false) return 0;
 
     return this.model.countDocuments(query);
+  }
+
+  private async getParentDoc(id, sub, access, populate = []) {
+    const parentQuery = await this.req._genQuery(
+      this.modelName,
+      access,
+      await this.req._genIDQuery(this.modelName, id),
+    );
+
+    if (parentQuery === false) return null;
+    return this.model.findOne({ query: parentQuery, select: sub, populate });
+  }
+
+  private filterChildren(children, query) {
+    if (isPlainObject(query))
+      return query.$and ? filter(children, (v) => query.$and.every((q) => isMatch(v, q))) : filter(children, query);
+
+    return children;
+  }
+
+  private genSubPopulate(sub: string, popul: any) {
+    if (!popul) return [];
+
+    let populate = Array.isArray(popul) ? popul : [popul];
+    populate = populate.map((p: SubPopulate | string) => {
+      const ret: SubPopulate = isString(p)
+        ? { path: `${sub}.${p}` }
+        : {
+            path: `${sub}.${p.path}`,
+            select: normalizeSelect(p.select),
+          };
+
+      return ret;
+    });
+
+    return populate;
+  }
+
+  async listSub(id, sub, options = {}) {
+    let { filter: ft, fields } = options as any;
+
+    const parentDoc = await this.getParentDoc(id, sub, 'read');
+    if (!parentDoc) return null;
+    let result = get(parentDoc, sub);
+
+    const [subQuery, subSelect] = await Promise.all([
+      this.req._genQuery(this.modelName, `subs.${sub}.list`, ft),
+      this.req._genSelect(this.modelName, 'list', fields, false, [sub, 'sub']),
+    ]);
+
+    result = this.filterChildren(result, subQuery);
+    if (subSelect) result = result.map((v) => pick(v, subSelect.concat(['id'])));
+    return result;
+  }
+
+  async readSub(id, sub, subId, options = {}) {
+    let { fields, populate } = options as any;
+
+    const parentDoc = await this.getParentDoc(id, sub, 'read', this.genSubPopulate(sub, populate));
+    if (!parentDoc) return null;
+    let result = get(parentDoc, sub);
+
+    const [subQuery, subSelect] = await Promise.all([
+      this.req._genQuery(this.modelName, `subs.${sub}.read`),
+      this.req._genSelect(this.modelName, 'read', fields, false, [sub, 'sub']),
+    ]);
+
+    result = this.filterChildren(result, subQuery);
+    result = result.find((v) => String(v._id) === subId);
+    if (!result) return null;
+
+    if (subSelect) result = pick(result, subSelect.concat(['id']));
+    return result;
+  }
+
+  async updateSub(id, sub, subId, data) {
+    const parentDoc = await this.getParentDoc(id, sub, 'update');
+    if (!parentDoc) return null;
+    let result = get(parentDoc, sub);
+
+    const [subQuery, subReadSelect, subUpdateSelect] = await Promise.all([
+      this.req._genQuery(this.modelName, `subs.${sub}.update`),
+      this.req._genSelect(this.modelName, 'read', null, false, [sub, 'sub']),
+      this.req._genSelect(this.modelName, 'update', null, false, [sub, 'sub']),
+    ]);
+
+    result = this.filterChildren(result, subQuery);
+    result = result.find((v) => String(v._id) === subId);
+    if (!result) return null;
+
+    const allowedData = pick(data, subUpdateSelect);
+    Object.assign(result, allowedData);
+
+    await parentDoc.save();
+    if (subReadSelect) result = pick(result, subReadSelect.concat(['id']));
+    return result;
+  }
+
+  async createSub(id, sub, data, options = {}) {
+    let { addFirst } = options as any;
+
+    const parentDoc = await this.getParentDoc(id, sub, 'update');
+    if (!parentDoc) return null;
+    let result = get(parentDoc, sub);
+
+    const [subCreateSelect, subReadSelect] = await Promise.all([
+      this.req._genSelect(this.modelName, 'create', null, false, [sub, 'sub']),
+      this.req._genSelect(this.modelName, 'read', null, false, [sub, 'sub']),
+    ]);
+
+    const allowedData = pick(data, subCreateSelect);
+    addFirst === true ? result.unshift(allowedData) : result.push(allowedData);
+
+    await parentDoc.save();
+    if (subReadSelect) result = result.map((v) => pick(v, subReadSelect.concat(['id'])));
+    return result;
+  }
+
+  async deleteSub(id, sub, subId) {
+    const parentDoc = await this.getParentDoc(id, sub, 'update');
+    if (!parentDoc) return null;
+    let result = get(parentDoc, sub);
+
+    const subQuery = await this.req._genQuery(this.modelName, `subs.${sub}.delete`);
+
+    result = this.filterChildren(result, subQuery);
+    result = result.find((v) => String(v._id) === subId);
+    if (!result) return null;
+
+    await result.remove();
+    await parentDoc.save();
+    return result._id;
   }
 }
 
