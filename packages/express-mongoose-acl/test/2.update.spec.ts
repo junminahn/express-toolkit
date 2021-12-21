@@ -97,4 +97,28 @@ describe('Update Users', () => {
     expect(response.body.statusHistory).to.not.exist;
     expect(response.body.orgs).to.not.exist;
   });
+
+  it('should generate permission data again after updating doc', async () => {
+    const response = await request(app)
+      .put('/api/users/lucy2')
+      .set('user', 'admin')
+      .send({
+        public: false,
+      })
+      .expect('Content-Type', /json/)
+      .expect(200);
+
+    expect(response.body._permissions['test:public']).to.equal(false);
+
+    const response2 = await request(app)
+      .put('/api/users/lucy2')
+      .set('user', 'admin')
+      .send({
+        public: true,
+      })
+      .expect('Content-Type', /json/)
+      .expect(200);
+
+    expect(response2.body._permissions['test:public']).to.equal(true);
+  });
 });

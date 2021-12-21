@@ -234,6 +234,7 @@ class Controller {
     doc = await this.req._transform(this.modelName, doc, 'update', context);
     context.modifiedPaths = doc.modifiedPaths();
     doc = await doc.save();
+    doc = await this.req._permit(this.modelName, doc, 'update', context);
     doc = await this.req._pickAllowedFields(this.modelName, doc, 'read', ['_id', this.options.permissionField]);
     doc = await this.req._decorate(this.modelName, doc, 'update', context, true);
 

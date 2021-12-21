@@ -43,6 +43,7 @@ const userRouter = new ModelRouter('User', {
       'edit.public': permissions.isAdmin,
       'edit.statusHistory': permissions.isAdmin,
       'edit.orgs': permissions.isAdmin,
+      'test:public': doc.public,
     };
 
     return p;
