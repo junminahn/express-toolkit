@@ -69,7 +69,7 @@ export async function genQuery(modelName: string, access: string = 'read', _quer
 export function genPagination({ page = 1, limit }, hardLimit) {
   limit = Number(limit);
   page = Number(page);
-  if (isNaN(limit)) limit = hardLimit;
+  if (isNaN(limit) || limit > hardLimit) limit = hardLimit;
 
   const options: { limit: string; skip?: number } = { limit };
   if (page > 1) options.skip = (page - 1) * limit;

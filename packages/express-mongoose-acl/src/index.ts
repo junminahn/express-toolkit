@@ -367,6 +367,7 @@ class ModelRouter {
   prepare: setOptionType = setOption.bind(this, 'prepare');
   transform: setOptionType = setOption.bind(this, 'transform');
   identifier: setOptionType = setOption.bind(this, 'identifier');
+  defaults: setOptionType = setOption.bind(this, 'defaults');
 
   get options() {
     return getModelOptions(this.modelName);

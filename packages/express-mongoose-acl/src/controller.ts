@@ -11,7 +11,18 @@ import flatten from 'lodash/flatten';
 import Model from './model';
 import { setModelOptions, setModelOption, getModelOptions } from './options';
 import { normalizeSelect, iterateQuery } from './helpers';
-import { ModelRouterProps, MiddlewareContext, SubPopulate } from './interfaces';
+import {
+  ModelRouterProps,
+  MiddlewareContext,
+  SubPopulate,
+  ListProps,
+  ReadProps,
+  CreateOptionProps,
+  UpdateOptionProps,
+  DistinctOptionProps,
+  Defaults,
+  Populate,
+} from './interfaces';
 
 const filterChildren = (children, query) => {
   if (isPlainObject(query))
@@ -43,16 +54,26 @@ class Controller {
   modelName: string;
   model: Model;
   options: ModelRouterProps;
+  defaults: Defaults;
 
   constructor(req: any, modelName: string) {
     this.req = req;
     this.modelName = modelName;
     this.model = new Model(modelName);
     this.options = getModelOptions(modelName);
+    this.defaults = this.options.defaults || {};
   }
 
-  async list({ query, select, sort, populate, limit, page, options = {} }) {
-    const { includePermissions = true, includeCount = false, populateAccess = 'read', lean = false } = options as any;
+  async list({
+    query = {},
+    select = this.defaults.list?.select,
+    sort = this.defaults.list?.sort,
+    populate = this.defaults.list?.populate,
+    limit = this.defaults.list?.limit,
+    page = this.defaults.list?.page,
+    options = this.defaults.list?.options || {},
+  }: ListProps = {}) {
+    const { includePermissions = true, includeCount = false, populateAccess = 'read', lean = false } = options;
 
     query = await iterateQuery(query, async (sq, key) => {
       const { model, mapper, ...rest } = sq;
@@ -84,7 +105,7 @@ class Controller {
     if (query === false) return [];
 
     // prevent populate paths from updating query select fields
-    if (select) populate = populate.filter((p) => select.includes(p.path.split('.')[0]));
+    if (select) populate = (populate as Populate[]).filter((p) => select.includes(p.path.split('.')[0]));
 
     let docs = await this.model.find({ query, select, sort, populate, lean, ...pagination });
     docs = await Promise.all(
@@ -107,7 +128,7 @@ class Controller {
     }
   }
 
-  async create(data, options = {}) {
+  async create(data, options: CreateOptionProps = this.defaults.create || {}) {
     const { includePermissions = true } = options as any;
 
     const isArr = Array.isArray(data);
@@ -145,8 +166,15 @@ class Controller {
     return this.model.new();
   }
 
-  async read(id, { select = [], populate = [], options = {} } = {}) {
-    const { includePermissions = true, tryList = true, populateAccess = 'read', lean = false } = options as any;
+  async read(
+    id,
+    {
+      select = this.defaults.read?.select,
+      populate = this.defaults.read?.populate,
+      options = this.defaults.read?.options || {},
+    }: ReadProps = {},
+  ) {
+    const { includePermissions = true, tryList = true, populateAccess = 'read', lean = false } = options;
 
     let query = null;
     [query, select, populate] = await Promise.all([
@@ -178,8 +206,8 @@ class Controller {
     return doc;
   }
 
-  async update(id, data, options = {}) {
-    const { returningAll = true } = options as any;
+  async update(id, data, options: UpdateOptionProps = this.defaults.update || {}) {
+    const { returningAll = true } = options;
 
     let query = await this.req._genQuery(this.modelName, 'update', await this.req._genIDQuery(this.modelName, id));
     if (query === false) return null;
@@ -223,8 +251,8 @@ class Controller {
     return doc._id;
   }
 
-  async distinct(field, options = {}) {
-    let { query } = options as any;
+  async distinct(field, options: DistinctOptionProps = this.defaults.distinct || {}) {
+    let { query } = options;
 
     query = await this.req._genQuery(this.modelName, 'read', query);
     if (query === false) return null;

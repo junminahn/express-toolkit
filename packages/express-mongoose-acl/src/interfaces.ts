@@ -7,6 +7,7 @@ interface Access {
   update?: ValidationType;
   delete?: ValidationType;
   distinct?: ValidationType;
+  count?: ValidationType;
   sub?: any;
 }
 
@@ -19,6 +20,56 @@ interface DocPermissions {
   create?: Function;
   read?: Function;
   update?: Function;
+}
+
+export interface CreateOptionProps {
+  includePermissions?: boolean;
+}
+
+export interface UpdateOptionProps {
+  returningAll?: boolean;
+}
+
+export interface DistinctOptionProps {
+  query?: any;
+}
+
+export interface ListOptionProps {
+  includePermissions?: boolean;
+  includeCount?: boolean;
+  populateAccess?: string;
+  lean?: boolean;
+}
+
+export interface ReadOptionProps {
+  includePermissions?: boolean;
+  tryList?: boolean;
+  populateAccess?: string;
+  lean?: boolean;
+}
+
+export interface ListProps {
+  query?: any;
+  select?: string[] | string | null | undefined;
+  sort?: string[] | string | null | undefined;
+  populate?: Populate[] | string | null | undefined;
+  limit?: string | number | null | undefined;
+  page?: string | number | null | undefined;
+  options?: ListOptionProps;
+}
+
+export interface ReadProps {
+  select?: string[] | string | null | undefined;
+  populate?: Populate[] | string | null | undefined;
+  options?: ReadOptionProps;
+}
+
+export interface Defaults {
+  list?: ListProps;
+  create?: CreateOptionProps;
+  read?: ReadProps;
+  update?: UpdateOptionProps;
+  distinct?: DistinctOptionProps;
 }
 
 export interface ModelRouterProps {
@@ -36,6 +87,7 @@ export interface ModelRouterProps {
   prepare?: any;
   transform?: any;
   identifier?: string | Function;
+  defaults?: Defaults;
 }
 
 export interface Populate {
