@@ -13,6 +13,31 @@ import { setModelOptions, setModelOption, getModelOptions } from './options';
 import { normalizeSelect, iterateQuery } from './helpers';
 import { ModelRouterProps, MiddlewareContext, SubPopulate } from './interfaces';
 
+const filterChildren = (children, query) => {
+  if (isPlainObject(query))
+    return query.$and ? filter(children, (v) => query.$and.every((q) => isMatch(v, q))) : filter(children, query);
+
+  return children;
+};
+
+const genSubPopulate = (sub: string, popul: any) => {
+  if (!popul) return [];
+
+  let populate = Array.isArray(popul) ? popul : [popul];
+  populate = populate.map((p: SubPopulate | string) => {
+    const ret: SubPopulate = isString(p)
+      ? { path: `${sub}.${p}` }
+      : {
+          path: `${sub}.${p.path}`,
+          select: normalizeSelect(p.select),
+        };
+
+    return ret;
+  });
+
+  return populate;
+};
+
 class Controller {
   req: any;
   modelName: string;
@@ -228,31 +253,6 @@ class Controller {
     return this.model.findOne({ query: parentQuery, select: sub, populate });
   }
 
-  private filterChildren(children, query) {
-    if (isPlainObject(query))
-      return query.$and ? filter(children, (v) => query.$and.every((q) => isMatch(v, q))) : filter(children, query);
-
-    return children;
-  }
-
-  private genSubPopulate(sub: string, popul: any) {
-    if (!popul) return [];
-
-    let populate = Array.isArray(popul) ? popul : [popul];
-    populate = populate.map((p: SubPopulate | string) => {
-      const ret: SubPopulate = isString(p)
-        ? { path: `${sub}.${p}` }
-        : {
-            path: `${sub}.${p.path}`,
-            select: normalizeSelect(p.select),
-          };
-
-      return ret;
-    });
-
-    return populate;
-  }
-
   async listSub(id, sub, options = {}) {
     let { filter: ft, fields } = options as any;
 
@@ -265,7 +265,7 @@ class Controller {
       this.req._genSelect(this.modelName, 'list', fields, false, [sub, 'sub']),
     ]);
 
-    result = this.filterChildren(result, subQuery);
+    result = filterChildren(result, subQuery);
     if (subSelect) result = result.map((v) => pick(v, subSelect.concat(['id'])));
     return result;
   }
@@ -273,7 +273,7 @@ class Controller {
   async readSub(id, sub, subId, options = {}) {
     let { fields, populate } = options as any;
 
-    const parentDoc = await this.getParentDoc(id, sub, 'read', this.genSubPopulate(sub, populate));
+    const parentDoc = await this.getParentDoc(id, sub, 'read', genSubPopulate(sub, populate));
     if (!parentDoc) return null;
     let result = get(parentDoc, sub);
 
@@ -282,7 +282,7 @@ class Controller {
       this.req._genSelect(this.modelName, 'read', fields, false, [sub, 'sub']),
     ]);
 
-    result = this.filterChildren(result, subQuery);
+    result = filterChildren(result, subQuery);
     result = result.find((v) => String(v._id) === subId);
     if (!result) return null;
 
@@ -301,7 +301,7 @@ class Controller {
       this.req._genSelect(this.modelName, 'update', null, false, [sub, 'sub']),
     ]);
 
-    result = this.filterChildren(result, subQuery);
+    result = filterChildren(result, subQuery);
     result = result.find((v) => String(v._id) === subId);
     if (!result) return null;
 
@@ -340,7 +340,7 @@ class Controller {
 
     const subQuery = await this.req._genQuery(this.modelName, `subs.${sub}.delete`);
 
-    result = this.filterChildren(result, subQuery);
+    result = filterChildren(result, subQuery);
     result = result.find((v) => String(v._id) === subId);
     if (!result) return null;
 

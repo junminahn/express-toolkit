@@ -39,6 +39,7 @@ module.exports = {
     'no-plusplus': 0,
     'no-prototype-builtins': 0,
     'no-underscore-dangle': 0,
+    'no-unneeded-ternary': 0,
     'object-shorthand': 0,
     'prefer-arrow-callback': 0,
     'prefer-const': 0,
