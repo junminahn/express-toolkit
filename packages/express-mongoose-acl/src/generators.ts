@@ -1,4 +1,5 @@
 import get from 'lodash/get';
+import set from 'lodash/set';
 import isBoolean from 'lodash/isBoolean';
 import isString from 'lodash/isString';
 import isArray from 'lodash/isArray';
@@ -85,6 +86,14 @@ function getModelPermissions(modelName, doc) {
   }
 
   return modelPermissions;
+}
+
+function setModelPermission(doc, path, value) {
+  if (isDocument(doc)) {
+    set(doc._doc, path, value);
+  } else if (isPlainObject(doc)) {
+    set(doc, path, value);
+  }
 }
 
 function getModelKeys(doc) {
@@ -238,9 +247,9 @@ export async function permit(modelName: string, doc: any, access: string, contex
 
   if (isFunction(permit)) {
     const permissions = this[PERMISSIONS];
-    doc._doc[modelPermissionField] = await permit.call(this, doc, permissions, context);
+    setModelPermission(doc, modelPermissionField, await permit.call(this, doc, permissions, context));
   } else {
-    doc._doc[modelPermissionField] = {};
+    setModelPermission(doc, modelPermissionField, {});
   }
 
   const allowedFields = await this._genAllowedFields(modelName, doc, 'update');
@@ -249,7 +258,7 @@ export async function permit(modelName: string, doc: any, access: string, contex
 
   // TODO: make it flexible structure
   forEach(allowedFields, (field) => {
-    doc._doc[modelPermissionField][`edit.${field}`] = true;
+    setModelPermission(doc, `${modelPermissionField}.edit.${field}`, true);
   });
 
   return doc;

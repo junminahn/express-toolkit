@@ -1,15 +1,12 @@
 // @ts-nocheck
-import * as mongoose from 'mongoose';
 import isObject from 'lodash/isObject';
 import isEmpty from 'lodash/isEmpty';
 import isArray from 'lodash/isArray';
 import isString from 'lodash/isString';
 import isPlainObject from 'lodash/isPlainObject';
+import noop from 'lodash/noop';
 import forEach from 'lodash/forEach';
-
-const isSchema = (val) => val instanceof mongoose.Schema;
-const isObjectIdType = (val) => val === 'ObjectId' || val === mongoose.Schema.Types.ObjectId;
-const isReference = (val) => isPlainObject(val) && val.ref && isObjectIdType(val.type);
+import { isSchema, isReference } from './lib';
 
 function recurseObject(obj: any) {
   if (isSchema(obj)) {
@@ -70,6 +67,33 @@ export function buildSubPaths(schema: any) {
   });
 
   return subPaths;
+}
+
+async function mapValuesAsync(object, asyncFn) {
+  return Object.fromEntries(
+    await Promise.all(Object.entries(object).map(async ([key, value]) => [key, await asyncFn(value, key, object)])),
+  );
+}
+
+export async function iterateQuery(query: any, handler: Function) {
+  if (!isPlainObject(query)) return query;
+  if (!handler) return noop;
+
+  return mapValuesAsync(query, async (val, key) => {
+    if (isPlainObject(val)) {
+      if (val.$$sq) {
+        return handler(val.$$sq, key);
+      } else {
+        return iterateQuery(val, handler);
+      }
+    }
+
+    if (isArray(val)) {
+      return Promise.all(val.map((v) => iterateQuery(v, handler)));
+    }
+
+    return val;
+  });
 }
 
 export const normalizeSelect = (select: string | string[]) => {

@@ -7,12 +7,14 @@ interface FindProps {
   populate?: any;
   limit?: any;
   skip?: any;
+  lean?: boolean;
 }
 
 interface FindOneProps {
   query: any;
   select?: any;
   populate?: any;
+  lean?: boolean;
 }
 
 // Reference
@@ -51,7 +53,7 @@ class Model {
     return this.model.create(data);
   }
 
-  find({ query, select, sort, populate, limit, skip }: FindProps) {
+  find({ query, select, sort, populate, limit, skip, lean }: FindProps) {
     // sort = this.pruneSort(sort);
 
     let builder = this.model.find(query);
@@ -60,6 +62,7 @@ class Model {
     if (limit) builder = builder.limit(limit);
     if (sort) builder = builder.sort(sort);
     if (populate) builder = builder.populate(populate);
+    if (lean) builder = builder.lean();
 
     return builder;
   }
@@ -80,10 +83,11 @@ class Model {
     return ret;
   }
 
-  findOne({ query, select, populate }: FindOneProps) {
+  findOne({ query, select, populate, lean }: FindOneProps) {
     let builder = this.model.findOne(query);
     if (select) builder = builder.select(select);
     if (populate) builder = builder.populate(populate);
+    if (lean) builder = builder.lean();
 
     return builder;
   }

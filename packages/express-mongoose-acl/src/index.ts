@@ -9,7 +9,7 @@ import intersection from 'lodash/intersection';
 import Model from './model';
 
 import { setGenerators } from './generators';
-import { setModelOptions, setModelOption, getModelOptions, getModelSub } from './options';
+import { getRootOption, setModelOptions, setModelOption, getModelOptions, getModelSub } from './options';
 import { ModelRouterProps, MiddlewareContext } from './interfaces';
 
 const pluralize = mongoose.pluralize();
@@ -36,6 +36,7 @@ class ModelRouter {
   router: JsonRouter;
   model: Model;
   basename: string;
+  idParam: string;
 
   constructor(modelName: string, options: ModelRouterProps) {
     this.modelName = modelName;
@@ -56,6 +57,7 @@ class ModelRouter {
       this.basename = baseUrl;
     }
 
+    this.idParam = getRootOption('idParam', 'id');
     this.setCollectionRoutes();
     this.setDocumentRoutes();
     this.setSubDocumentRoutes();
@@ -72,7 +74,7 @@ class ModelRouter {
       const allowed = await req._isAllowed(this.modelName, 'list');
       if (!allowed) throw new clientErrors.UnauthorizedError();
 
-      const { limit, page, include_permissions = 'true', include_count = 'false' } = req.query;
+      const { limit, page, include_permissions = 'true', include_count = 'false', lean = 'false' } = req.query;
 
       const model = req.macl(this.modelName);
       return model.list({
@@ -81,6 +83,7 @@ class ModelRouter {
         options: {
           includePermissions: include_permissions !== 'false',
           includeCount: include_count === 'true',
+          lean: lean === 'true',
         },
       });
     });
@@ -93,7 +96,7 @@ class ModelRouter {
       if (!allowed) throw new clientErrors.UnauthorizedError();
 
       let { query, select, sort, populate, limit, page, options = {} } = req.body;
-      const { includePermissions = true, includeCount = false, populateAccess = 'read' } = options;
+      const { includePermissions = true, includeCount = false, populateAccess = 'read', lean = false } = options;
 
       const model = req.macl(this.modelName);
       return model.list({
@@ -107,6 +110,7 @@ class ModelRouter {
           includePermissions,
           includeCount,
           populateAccess,
+          lean,
         },
       });
     });
@@ -142,17 +146,18 @@ class ModelRouter {
     //////////
     // READ //
     //////////
-    this.router.get(`${this.basename}/:id`, setGenerators, async (req, res) => {
+    this.router.get(`${this.basename}/:${this.idParam}`, setGenerators, async (req, res) => {
       const allowed = await req._isAllowed(this.modelName, 'read');
       if (!allowed) throw new clientErrors.UnauthorizedError();
 
-      const { id } = req.params;
-      const { include_permissions = 'true', try_list = 'true' } = req.query;
+      const id = req.params[this.idParam];
+      const { include_permissions = 'true', try_list = 'true', lean = 'false' } = req.query;
       const model = req.macl(this.modelName);
       return model.read(id, {
         options: {
           includePermissions: include_permissions !== 'false',
           tryList: try_list === 'true',
+          lean: lean === 'true',
         },
       });
     });
@@ -160,43 +165,44 @@ class ModelRouter {
     //////////////////
     // READ - QUERY //
     //////////////////
-    this.router.post(`${this.basename}/__query/:id`, setGenerators, async (req, res) => {
+    this.router.post(`${this.basename}/__query/:${this.idParam}`, setGenerators, async (req, res) => {
       const allowed = await req._isAllowed(this.modelName, 'read');
       if (!allowed) throw new clientErrors.UnauthorizedError();
 
-      const { id } = req.params;
+      const id = req.params[this.idParam];
       let { select, populate, options = {} } = req.body;
-      const { includePermissions = true, tryList = true, populateAccess = 'read' } = options;
+      const { includePermissions = true, tryList = true, populateAccess = 'read', lean = false } = options;
 
       const model = req.macl(this.modelName);
       return model.read(id, {
         select,
         populate,
-        options: { includePermissions, tryList, populateAccess },
+        options: { includePermissions, tryList, populateAccess, lean },
       });
     });
 
     ////////////
     // UPDATE //
     ////////////
-    this.router.put(`${this.basename}/:id`, setGenerators, async (req, res) => {
+    this.router.put(`${this.basename}/:${this.idParam}`, setGenerators, async (req, res) => {
       const allowed = await req._isAllowed(this.modelName, 'update');
       if (!allowed) throw new clientErrors.UnauthorizedError();
 
-      const { id } = req.params;
+      const id = req.params[this.idParam];
+      const { returning_all = 'true' } = req.query;
 
       const model = req.macl(this.modelName);
-      return model.update(id, req.body);
+      return model.update(id, req.body, { returningAll: returning_all === 'true' });
     });
 
     ////////////
     // DELETE //
     ////////////
-    this.router.delete(`${this.basename}/:id`, setGenerators, async (req, res) => {
+    this.router.delete(`${this.basename}/:${this.idParam}`, setGenerators, async (req, res) => {
       const allowed = await req._isAllowed(this.modelName, 'delete');
       if (!allowed) throw new clientErrors.UnauthorizedError();
 
-      const { id } = req.params;
+      const id = req.params[this.idParam];
       const model = req.macl(this.modelName);
       return model.delete(id);
     });
@@ -258,11 +264,11 @@ class ModelRouter {
       //////////
       // LIST //
       //////////
-      this.router.get(`${this.basename}/:id/${sub}`, setGenerators, async (req, res) => {
+      this.router.get(`${this.basename}/:${this.idParam}/${sub}`, setGenerators, async (req, res) => {
         const allowed = await req._isAllowed(this.modelName, `subs.${sub}.list`);
         if (!allowed) throw new clientErrors.UnauthorizedError();
 
-        const { id } = req.params;
+        const id = req.params[this.idParam];
         const model = req.macl(this.modelName);
         return model.listSub(id, sub);
       });
@@ -270,11 +276,11 @@ class ModelRouter {
       //////////////////
       // LIST - QUERY //
       //////////////////
-      this.router.post(`${this.basename}/:id/${sub}/__query`, setGenerators, async (req, res) => {
+      this.router.post(`${this.basename}/:${this.idParam}/${sub}/__query`, setGenerators, async (req, res) => {
         const allowed = await req._isAllowed(this.modelName, `subs.${sub}.list`);
         if (!allowed) throw new clientErrors.UnauthorizedError();
 
-        const { id } = req.params;
+        const id = req.params[this.idParam];
         const model = req.macl(this.modelName);
         return model.listSub(id, sub, req.body);
       });
@@ -282,11 +288,12 @@ class ModelRouter {
       //////////
       // READ //
       //////////
-      this.router.get(`${this.basename}/:id/${sub}/:subId`, setGenerators, async (req, res) => {
+      this.router.get(`${this.basename}/:${this.idParam}/${sub}/:subId`, setGenerators, async (req, res) => {
         const allowed = await req._isAllowed(this.modelName, `subs.${sub}.read`);
         if (!allowed) throw new clientErrors.UnauthorizedError();
 
-        const { id, subId } = req.params;
+        const id = req.params[this.idParam];
+        const { subId } = req.params;
         const model = req.macl(this.modelName);
         return model.readSub(id, sub, subId);
       });
@@ -294,11 +301,12 @@ class ModelRouter {
       //////////////////
       // READ - QUERY //
       //////////////////
-      this.router.post(`${this.basename}/:id/${sub}/:subId/__query`, setGenerators, async (req, res) => {
+      this.router.post(`${this.basename}/:${this.idParam}/${sub}/:subId/__query`, setGenerators, async (req, res) => {
         const allowed = await req._isAllowed(this.modelName, `subs.${sub}.read`);
         if (!allowed) throw new clientErrors.UnauthorizedError();
 
-        const { id, subId } = req.params;
+        const id = req.params[this.idParam];
+        const { subId } = req.params;
         const model = req.macl(this.modelName);
         return model.readSub(id, sub, subId, req.body);
       });
@@ -306,11 +314,12 @@ class ModelRouter {
       ////////////
       // UPDATE //
       ////////////
-      this.router.put(`${this.basename}/:id/${sub}/:subId`, setGenerators, async (req, res) => {
+      this.router.put(`${this.basename}/:${this.idParam}/${sub}/:subId`, setGenerators, async (req, res) => {
         const allowed = await req._isAllowed(this.modelName, `subs.${sub}.update`);
         if (!allowed) throw new clientErrors.UnauthorizedError();
 
-        const { id, subId } = req.params;
+        const id = req.params[this.idParam];
+        const { subId } = req.params;
         const model = req.macl(this.modelName);
         return model.updateSub(id, sub, subId, req.body);
       });
@@ -318,11 +327,11 @@ class ModelRouter {
       ////////////
       // CREATE //
       ////////////
-      this.router.post(`${this.basename}/:id/${sub}`, setGenerators, async (req, res) => {
+      this.router.post(`${this.basename}/:${this.idParam}/${sub}`, setGenerators, async (req, res) => {
         const allowed = await req._isAllowed(this.modelName, `subs.${sub}.create`);
         if (!allowed) throw new clientErrors.UnauthorizedError();
 
-        const { id } = req.params;
+        const id = req.params[this.idParam];
         const model = req.macl(this.modelName);
         return model.createSub(id, sub, req.body);
       });
@@ -330,11 +339,12 @@ class ModelRouter {
       ////////////
       // DELETE //
       ////////////
-      this.router.delete(`${this.basename}/:id/${sub}/:subId`, setGenerators, async (req, res) => {
+      this.router.delete(`${this.basename}/:${this.idParam}/${sub}/:subId`, setGenerators, async (req, res) => {
         const allowed = await req._isAllowed(this.modelName, `subs.${sub}.delete`);
         if (!allowed) throw new clientErrors.UnauthorizedError();
 
-        const { id, subId } = req.params;
+        const id = req.params[this.idParam];
+        const { subId } = req.params;
         const model = req.macl(this.modelName);
         return model.deleteSub(id, sub, subId);
       });

@@ -6,9 +6,11 @@ import isPlainObject from 'lodash/isPlainObject';
 import isString from 'lodash/isString';
 import isMatch from 'lodash/isMatch';
 import filter from 'lodash/filter';
+import compact from 'lodash/compact';
+import flatten from 'lodash/flatten';
 import Model from './model';
 import { setModelOptions, setModelOption, getModelOptions } from './options';
-import { normalizeSelect } from './helpers';
+import { normalizeSelect, iterateQuery } from './helpers';
 import { ModelRouterProps, MiddlewareContext, SubPopulate } from './interfaces';
 
 class Controller {
@@ -25,7 +27,26 @@ class Controller {
   }
 
   async list({ query, select, sort, populate, limit, page, options = {} }) {
-    const { includePermissions = true, includeCount = false, populateAccess = 'read' } = options as any;
+    const { includePermissions = true, includeCount = false, populateAccess = 'read', lean = false } = options as any;
+
+    query = await iterateQuery(query, async (sq, key) => {
+      const { model, mapper, ...rest } = sq;
+      const m = this.req.macl(model);
+      const arr = await m.list(rest);
+      if (mapper) {
+        const m = mapper.multi === false ? false : true;
+        const c = mapper.compact === true;
+        const f = mapper.flatten === true;
+        const path = mapper.path || mapper;
+        if (!m) return get(arr[0], path, isNil(mapper.defaultValue) ? null : mapper.defaultValue);
+
+        let items = arr.map((v) => get(v, path));
+        if (f) items = flatten(items);
+        if (c) items = compact(items);
+        return items;
+      }
+      return arr;
+    });
 
     let pagination = null;
     [query, select, populate, pagination] = await Promise.all([
@@ -40,7 +61,7 @@ class Controller {
     // prevent populate paths from updating query select fields
     if (select) populate = populate.filter((p) => select.includes(p.path.split('.')[0]));
 
-    let docs = await this.model.find({ query, select, sort, populate, ...pagination });
+    let docs = await this.model.find({ query, select, sort, populate, lean, ...pagination });
     docs = await Promise.all(
       docs.map(async (doc) => {
         if (includePermissions) doc = await this.req._permit(this.modelName, doc, 'list');
@@ -100,7 +121,7 @@ class Controller {
   }
 
   async read(id, { select = [], populate = [], options = {} } = {}) {
-    const { includePermissions = true, tryList = true, populateAccess = 'read' } = options as any;
+    const { includePermissions = true, tryList = true, populateAccess = 'read', lean = false } = options as any;
 
     let query = null;
     [query, select, populate] = await Promise.all([
@@ -111,7 +132,7 @@ class Controller {
 
     if (query === false) return null;
 
-    let doc = await this.model.findOne({ query, select, populate });
+    let doc = await this.model.findOne({ query, select, populate, lean });
 
     // if not found, try to get the doc with 'list' access
     if (!doc && tryList) {
@@ -120,7 +141,7 @@ class Controller {
         this.req._genSelect(this.modelName, 'list', select),
       ]);
 
-      doc = await this.model.findOne({ query, select, populate });
+      doc = await this.model.findOne({ query, select, populate, lean });
     }
 
     if (!doc) return null;
@@ -132,7 +153,9 @@ class Controller {
     return doc;
   }
 
-  async update(id, data) {
+  async update(id, data, options = {}) {
+    const { returningAll = true } = options as any;
+
     let query = await this.req._genQuery(this.modelName, 'update', await this.req._genIDQuery(this.modelName, id));
     if (query === false) return null;
 
@@ -161,7 +184,7 @@ class Controller {
     doc = await this.req._pickAllowedFields(this.modelName, doc, 'read', ['_id', this.options.permissionField]);
     doc = await this.req._decorate(this.modelName, doc, 'update', context, true);
 
-    return doc;
+    return returningAll ? doc : pick(doc, Object.keys(data));
   }
 
   async delete(id) {

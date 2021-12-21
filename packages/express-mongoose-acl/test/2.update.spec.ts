@@ -63,4 +63,38 @@ describe('Update Users', () => {
     expect(response.body.orgs.length).to.equal(2);
     expect(response.body.statusHistory).to.be.undefined;
   });
+
+  it('should returning all fields', async () => {
+    const response = await request(app)
+      .put('/api/users/lucy2')
+      .set('user', 'admin')
+      .send({
+        public: false,
+      })
+      .expect('Content-Type', /json/)
+      .expect(200);
+
+    expect(response.body.name).to.exist;
+    expect(response.body.role).to.exist;
+    expect(response.body.public).to.exist;
+    expect(response.body.statusHistory).to.exist;
+    expect(response.body.orgs).to.exist;
+  });
+
+  it('should returning updated fields only', async () => {
+    const response = await request(app)
+      .put('/api/users/lucy2?returning_all=false')
+      .set('user', 'admin')
+      .send({
+        public: true,
+      })
+      .expect('Content-Type', /json/)
+      .expect(200);
+
+    expect(response.body.name).to.not.exist;
+    expect(response.body.role).to.not.exist;
+    expect(response.body.public).to.exist;
+    expect(response.body.statusHistory).to.not.exist;
+    expect(response.body.orgs).to.not.exist;
+  });
 });

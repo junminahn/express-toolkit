@@ -18,7 +18,7 @@ modelNames.forEach((modelName) => {
   modelSubs[modelName] = subPaths;
 });
 
-const defaultRootOptions = { permissionField: '_permissions' };
+const defaultRootOptions = { permissionField: '_permissions', idParam: 'id' };
 let currentRootOptions = { ...defaultRootOptions };
 let modelOptions = {};
 
@@ -67,4 +67,4 @@ export const getModelOption = (modelName: string, optionKey: string, defaultValu
 };
 
 export const getModelRef = (modelName: string, refPath: string) => get(modelRefs, `${modelName}.${refPath}`, null);
-export const getModelSub = (modelName: string) => get(modelSubs, modelName, null);
+export const getModelSub = (modelName: string) => get(modelSubs, modelName, []);

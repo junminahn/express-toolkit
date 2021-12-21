@@ -178,3 +178,26 @@ describe('List-Query Users', () => {
     expect(response.body[1].orgs).to.not.exist;
   });
 });
+
+describe('List Sub-query', () => {
+  it('should list orgs queried user.orgs field', async () => {
+    const user: any = await mongoose.model('User').findOne({ name: 'lucy2' }).populate('orgs');
+    const orgIds = user.orgs.map((v) => String(v._id));
+
+    const response = await request(app)
+      .post('/api/orgs/__query')
+      .set('user', 'admin')
+      .send({
+        query: {
+          _id: {
+            $$sq: { model: 'User', mapper: { path: 'orgs', multi: false }, query: { name: 'lucy2' } },
+          },
+        },
+      })
+      .expect('Content-Type', /json/)
+      .expect(200);
+
+    const result = response.body.map((v) => String(v._id));
+    expect(result).deep.equal(orgIds);
+  });
+});
