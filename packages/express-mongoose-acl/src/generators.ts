@@ -20,6 +20,7 @@ import Controller from './controller';
 import { normalizeSelect } from './helpers';
 import { isDocument } from './lib';
 
+const MIDDLEWARE = Symbol('middleware');
 const PERMISSIONS = Symbol('permissions');
 const PERMISSION_KEYS = Symbol('permission-keys');
 
@@ -285,6 +286,16 @@ export function getPermissions() {
   return new Permission(this[permissionField] || {});
 }
 
+export async function setPermissions() {
+  const permissionField = getRootOption('permissionField');
+  if (this[permissionField]) return;
+
+  const rootPermissions = getRootOption('rootPermissions');
+  if (isFunction(rootPermissions)) {
+    this[permissionField] = await rootPermissions.call(this, this);
+  }
+}
+
 export async function isAllowed(modelName, access) {
   const routeGuard = getModelOption(modelName, `routeGuard.${access}`);
   let allowed = false;
@@ -308,7 +319,9 @@ export function macl(modelName: string) {
   return new Controller(this, modelName);
 }
 
-export function setGenerators(req, res, next) {
+export async function setGenerators(req, res, next) {
+  if (req[MIDDLEWARE]) return next();
+
   req._genIDQuery = genIDQuery.bind(req);
   req._genQuery = genQuery.bind(req);
   req._genPagination = genPagination.bind(req);
@@ -322,9 +335,13 @@ export function setGenerators(req, res, next) {
   req._decorate = decorate.bind(req);
   req._decorateAll = decorateAll.bind(req);
   req._getPermissions = getPermissions.bind(req);
+  req._setPermissions = setPermissions.bind(req);
   req._isAllowed = isAllowed.bind(req);
   req.macl = macl.bind(req);
+
+  await req._setPermissions();
   req[PERMISSIONS] = req._getPermissions();
   req[PERMISSION_KEYS] = req[PERMISSIONS].$_permissionKeys;
+  req[MIDDLEWARE] = true;
   next();
 }

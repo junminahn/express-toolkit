@@ -39,7 +39,10 @@ const errorMessageProvider = {
 /**
  * Send a JSON response with status 200.
  */
-const _sendJson = function (res, data) {
+const _sendJson = function (res, data, event) {
+  if (res.headersSent) return;
+  if (event.canceled) return;
+
   if (data instanceof Response) {
     res.status(data.statusCode).json(data.data);
   } else {
@@ -50,7 +53,10 @@ const _sendJson = function (res, data) {
 /**
  * Send an error message with 4xx response code.
  */
-const _sendError = function (res, err) {
+const _sendError = function (res, err, event) {
+  if (res.headersSent) return;
+  if (event.canceled) return;
+
   if (err.statusCode) {
     res.status(err.statusCode).send({ message: err.message });
   } else {
@@ -74,15 +80,15 @@ const preJson = {
     preJson._hook = promisify(fn);
 
     if (postJson._hook) {
-      sendJson = function (res, data) {
+      sendJson = function (res, data, event) {
         preJson._hook(data).then(() => {
-          _sendJson(res, data);
+          _sendJson(res, data, event);
           postJson._hook(data);
         });
       };
     } else {
-      sendJson = function (res, data) {
-        preJson._hook(data).then(() => _sendJson(res, data));
+      sendJson = function (res, data, event) {
+        preJson._hook(data).then(() => _sendJson(res, data, event));
       };
     }
   },
@@ -101,15 +107,15 @@ const postJson = {
     postJson._hook = promisify(fn);
 
     if (preJson._hook) {
-      sendJson = function (res, data) {
+      sendJson = function (res, data, event) {
         preJson._hook(data).then(() => {
-          _sendJson(res, data);
+          _sendJson(res, data, event);
           postJson._hook(data);
         });
       };
     } else {
-      sendJson = function (res, data) {
-        _sendJson(res, data);
+      sendJson = function (res, data, event) {
+        _sendJson(res, data, event);
         postJson._hook(data);
       };
     }
@@ -129,15 +135,15 @@ const preError = {
     preError._hook = promisify(fn);
 
     if (postError._hook) {
-      sendError = function (res, err) {
+      sendError = function (res, err, event) {
         preError._hook(err).then(() => {
-          _sendError(res, err);
+          _sendError(res, err, event);
           postError._hook(err);
         });
       };
     } else {
-      sendError = function (res, err) {
-        preError._hook(err).then(() => _sendError(res, err));
+      sendError = function (res, err, event) {
+        preError._hook(err).then(() => _sendError(res, err, event));
       };
     }
   },
@@ -156,15 +162,15 @@ const postError = {
     postError._hook = promisify(fn);
 
     if (preError._hook) {
-      sendError = function (res, err) {
+      sendError = function (res, err, event) {
         preError._hook(err).then(() => {
-          _sendError(res, err);
+          _sendError(res, err, event);
           postError._hook(err);
         });
       };
     } else {
-      sendError = function (res, err) {
-        _sendError(res, err);
+      sendError = function (res, err, event) {
+        _sendError(res, err, event);
         postError._hook(err);
       };
     }
@@ -174,8 +180,11 @@ const postError = {
 /**
  * Complete a request with a returned promise.
  */
-const handlePromise = function (res, promise) {
-  promise.then(sendJson.bind(null, res), sendError.bind(null, res));
+const handlePromise = function (res, promise, event) {
+  promise.then(
+    (data) => sendJson(res, data, event),
+    (err) => sendError(res, err, event),
+  );
 };
 
 /**
@@ -186,8 +195,8 @@ const handleResult = function (res, result, event) {
   if (res.headersSent) return;
   if (event.canceled) return;
 
-  if (isPromise(result)) handlePromise(res, result);
-  else sendJson(res, result);
+  if (isPromise(result)) handlePromise(res, result, event);
+  else sendJson(res, result, event);
 };
 
 /**
@@ -207,13 +216,14 @@ const routerFn = function (fn) {
   const event = {
     canceled: false,
   };
+
   return function (req, res, next) {
     try {
       const result = fn(req, res, nextFn(event, next));
       handleResult(res, result, event);
     } catch (err) {
       if (res.headersSent) return;
-      sendError(res, err);
+      sendError(res, err, event);
     }
   };
 };

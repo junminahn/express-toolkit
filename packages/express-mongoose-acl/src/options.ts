@@ -13,12 +13,11 @@ modelNames.forEach((modelName) => {
   const references = buildRefs(mongoose.models[modelName].schema.tree);
   // @ts-ignore
   const subPaths = buildSubPaths(mongoose.models[modelName].schema.tree);
-  console.log(modelName, references, subPaths);
   modelRefs[modelName] = references;
   modelSubs[modelName] = subPaths;
 });
 
-const defaultRootOptions = { permissionField: '_permissions', idParam: 'id' };
+const defaultRootOptions = { permissionField: '_permissions', idParam: 'id', rootPermissions: () => ({}) };
 let currentRootOptions = { ...defaultRootOptions };
 let modelOptions = {};
 

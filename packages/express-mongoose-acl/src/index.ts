@@ -12,6 +12,11 @@ import { setGenerators } from './generators';
 import { getRootOption, setModelOptions, setModelOption, getModelOptions, getModelSub } from './options';
 import { ModelRouterProps, MiddlewareContext } from './interfaces';
 
+JsonRouter.errorMessageProvider = function (error) {
+  console.error(error);
+  return error.message || error._message || error;
+};
+
 const pluralize = mongoose.pluralize();
 const clientErrors = JsonRouter.clientErrors;
 

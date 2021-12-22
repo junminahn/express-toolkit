@@ -16,7 +16,7 @@
     "sync-version": "node ../../scripts/sync-version.js --name=express-mongoose-acl"
   },
   "dependencies": {
-    "express-json-router": "0.2.0",
+    "express-json-router": "0.2.1",
     "lodash": "^4.17.21"
   },
   "devDependencies": {
