@@ -11,24 +11,22 @@ import db from './db';
 import models from './models';
 import routes from './routes';
 import { COOKIE_SESSION_NAME, COOKIE_SESSION_SECRET } from './config';
-import { setRootOptions } from '../src/options';
+import { setRootOption } from '../src/options';
 import macl from '../src/middleware';
 
 console.log(!!models);
 
-setRootOptions({
-  rootPermissions: async function (req) {
-    const User = mongoose.model('User');
-    const userName = req.headers.user;
+setRootOption('rootPermissions', async function (req) {
+  const User = mongoose.model('User');
+  const userName = req.headers.user;
 
-    let user;
-    if (userName) {
-      user = await User.findOne({ name: userName });
-    }
+  let user;
+  if (userName) {
+    user = await User.findOne({ name: userName });
+  }
 
-    req._user = user;
-    return { isAdmin: user?.role === 'admin', userId: user?._id };
-  },
+  req._user = user;
+  return { isAdmin: user?.role === 'admin', userId: user?._id };
 });
 
 const MemoryStore = memorystore(session);

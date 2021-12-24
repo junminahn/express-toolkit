@@ -25,6 +25,10 @@ export const setRootOptions = (options) => {
   currentRootOptions = { ...defaultRootOptions, ...currentRootOptions, ...options };
 };
 
+export const setRootOption = (optionKey, value) => {
+  set(currentRootOptions, optionKey, value);
+};
+
 export const getRootOption = (optionKey: string, defaultValue?: any) =>
   get(currentRootOptions, optionKey, defaultValue);
 

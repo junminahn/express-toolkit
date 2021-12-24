@@ -97,4 +97,88 @@ describe('Read-Query User', () => {
     expect(response.body.name).to.not.exist;
     expect(response.body.orgs).to.not.exist;
   });
+
+  it('should exclude _id field', async () => {
+    const response = await request(app)
+      .post('/api/users/__query/lucy2')
+      .set('user', 'admin')
+      .send({ select: '-_id name' })
+      .expect('Content-Type', /json/)
+      .expect(200);
+
+    expect(response.body._id).to.not.exist;
+    expect(response.body.name).to.exist;
+  });
+
+  it('should exclude _id field', async () => {
+    const response = await request(app)
+      .post('/api/users/__query/lucy2')
+      .set('user', 'admin')
+      .send({ select: ['-_id', 'name'] })
+      .expect('Content-Type', /json/)
+      .expect(200);
+
+    expect(response.body._id).to.not.exist;
+    expect(response.body.name).to.exist;
+  });
+
+  it('should exclude _id field', async () => {
+    const response = await request(app)
+      .post('/api/users/__query/lucy2')
+      .set('user', 'admin')
+      .send({ select: { _id: -1, name: 1 } })
+      .expect('Content-Type', /json/)
+      .expect(200);
+
+    expect(response.body._id).to.not.exist;
+    expect(response.body.name).to.exist;
+  });
+
+  it('should exclude _id and name fields', async () => {
+    const response = await request(app)
+      .post('/api/users/__query/lucy2')
+      .set('user', 'admin')
+      .send({ select: '-_id -name' })
+      .expect('Content-Type', /json/)
+      .expect(200);
+
+    expect(response.body._id).to.not.exist;
+    expect(response.body.name).to.not.exist;
+    expect(response.body.role).to.exist;
+    expect(response.body.public).to.exist;
+    expect(response.body.statusHistory).to.exist;
+    expect(response.body.orgs).to.exist;
+  });
+
+  it('should exclude _id and name fields', async () => {
+    const response = await request(app)
+      .post('/api/users/__query/lucy2')
+      .set('user', 'admin')
+      .send({ select: ['-_id', '-name'] })
+      .expect('Content-Type', /json/)
+      .expect(200);
+
+    expect(response.body._id).to.not.exist;
+    expect(response.body.name).to.not.exist;
+    expect(response.body.role).to.exist;
+    expect(response.body.public).to.exist;
+    expect(response.body.statusHistory).to.exist;
+    expect(response.body.orgs).to.exist;
+  });
+
+  it('should exclude _id and name fields', async () => {
+    const response = await request(app)
+      .post('/api/users/__query/lucy2')
+      .set('user', 'admin')
+      .send({ select: { _id: -1, name: -1 } })
+      .expect('Content-Type', /json/)
+      .expect(200);
+
+    expect(response.body._id).to.not.exist;
+    expect(response.body.name).to.not.exist;
+    expect(response.body.role).to.exist;
+    expect(response.body.public).to.exist;
+    expect(response.body.statusHistory).to.exist;
+    expect(response.body.orgs).to.exist;
+  });
 });

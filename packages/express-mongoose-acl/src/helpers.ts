@@ -4,9 +4,11 @@ import isEmpty from 'lodash/isEmpty';
 import isArray from 'lodash/isArray';
 import isString from 'lodash/isString';
 import isPlainObject from 'lodash/isPlainObject';
+import reduce from 'lodash/reduce';
 import noop from 'lodash/noop';
 import forEach from 'lodash/forEach';
 import { isSchema, isReference } from './lib';
+import { Projection } from './interfaces';
 
 function recurseObject(obj: any) {
   if (isSchema(obj)) {
@@ -96,10 +98,19 @@ export async function iterateQuery(query: any, handler: Function) {
   });
 }
 
-export const normalizeSelect = (select: string | string[]) => {
-  return Array.isArray(select)
-    ? select.map((v) => v.trim())
-    : isString(select)
-    ? select.split(' ').map((v) => v.trim())
-    : null;
+export const normalizeSelect = (select: Projection | null) => {
+  if (Array.isArray(select)) return select.map((v) => v.trim());
+  if (isPlainObject(select)) {
+    return reduce(
+      select,
+      (ret, val, key) => {
+        if (val === 1) ret.push(key);
+        else if (val === -1) ret.push(`-${key}`);
+        return ret;
+      },
+      [],
+    );
+  }
+  if (isString(select)) return select.split(' ').map((v) => v.trim());
+  return null;
 };

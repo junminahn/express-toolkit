@@ -90,16 +90,22 @@ export interface ModelRouterProps {
   defaults?: Defaults;
 }
 
+interface KeyValueProjection {
+  [key: string]: 1 | -1;
+}
+
+export type Projection = string[] | string | KeyValueProjection;
+
 export interface Populate {
   path: string;
-  select?: string | string[];
+  select?: Projection;
   match?: any;
   access?: string;
 }
 
 export interface SubPopulate {
   path: string;
-  select?: string | string[];
+  select?: Projection;
 }
 
 interface keyValue {

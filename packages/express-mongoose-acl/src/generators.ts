@@ -13,8 +13,9 @@ import pick from 'lodash/pick';
 import forEach from 'lodash/forEach';
 import compact from 'lodash/compact';
 import intersection from 'lodash/intersection';
+import difference from 'lodash/difference';
 import { getRootOption, getModelOption, getModelRef } from './options';
-import { Populate, MiddlewareContext } from './interfaces';
+import { Populate, Projection, MiddlewareContext } from './interfaces';
 import Permission, { Permissions } from './permission';
 import Controller from './controller';
 import { normalizeSelect } from './helpers';
@@ -105,14 +106,7 @@ function toObject(doc) {
   return isDocument(doc) ? doc.toObject() : doc;
 }
 
-export async function genAllowedFields(
-  modelName: string,
-  doc: any,
-  access: string,
-  baseFields = [],
-  targetFields: string[] | string | null = null,
-) {
-  targetFields = normalizeSelect(targetFields);
+export async function genAllowedFields(modelName: string, doc: any, access: string, baseFields = []) {
   let fields = baseFields || [];
 
   const permissionSchema = getModelOption(modelName, 'permissionSchema');
@@ -140,28 +134,18 @@ export async function genAllowedFields(
     }
   }
 
-  if (targetFields) {
-    fields = intersection(targetFields, fields);
-  }
-
   return fields;
 }
 
-export async function pickAllowedFields(
-  modelName: string,
-  doc: any,
-  access: string,
-  baseFields = [],
-  targetFields: string[] | string | null = null,
-) {
-  const allowed = await this._genAllowedFields(modelName, doc, access, baseFields, targetFields);
+export async function pickAllowedFields(modelName: string, doc: any, access: string, baseFields = []) {
+  const allowed = await this._genAllowedFields(modelName, doc, access, baseFields);
   return pick(toObject(doc), allowed);
 }
 
 export async function genSelect(
   modelName: string,
   access: string,
-  targetFields: string[] | string | null = null,
+  targetFields: Projection | null = null,
   skipChecks = true,
   subPaths = [],
 ) {
@@ -191,8 +175,16 @@ export async function genSelect(
     }
   }
 
-  if (targetFields) {
-    fields = intersection(targetFields, fields.concat(['_id']));
+  if (targetFields?.length > 0) {
+    const excludeid = targetFields.includes('-_id');
+    const excludeall = targetFields.every((v) => v.startsWith('-'));
+    if (excludeall) {
+      targetFields = targetFields.map((v) => v.substring(1));
+      fields = difference(fields, targetFields);
+      if (excludeid) fields.push('-_id');
+    } else {
+      fields = intersection(targetFields, fields.concat(excludeid ? '-_id' : '_id'));
+    }
   }
 
   const permissionFields = subPaths.length > 0 ? [] : getModelOption(modelName, 'permissionFields', []);
