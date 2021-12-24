@@ -54,7 +54,7 @@ export async function genIDQuery(modelName: string, id: string) {
   return { _id: id };
 }
 
-export async function genQuery(modelName: string, access: string = 'read', _query: any) {
+export async function genQuery(modelName: string, access: string = 'read', _query: any = null) {
   const baseQueryFn = getModelOption(modelName, `baseQuery.${access}`, null);
   if (!isFunction(baseQueryFn)) return _query || {};
 
@@ -191,7 +191,7 @@ export async function genSelect(
   return fields.concat(permissionFields);
 }
 
-export async function genPopulate(modelName: string, access: string = 'read', _populate: any) {
+export async function genPopulate(modelName: string, access: string = 'read', _populate: any = null) {
   if (!_populate) return [];
 
   let populate = Array.isArray(_populate) ? _populate : [_populate];

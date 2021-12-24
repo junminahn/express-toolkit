@@ -1,7 +1,7 @@
 module.exports = {
   extends: ['airbnb-base', 'prettier'],
   env: { es6: true, commonjs: true, node: true, jest: true },
-  plugins: [],
+  plugins: ['import'],
   parserOptions: {
     ecmaVersion: 6,
   },
