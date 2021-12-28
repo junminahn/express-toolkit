@@ -5,18 +5,16 @@ import memorystore from 'memorystore';
 import morgan from 'morgan';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
-import listEndpoints from 'express-list-endpoints';
 import _ from 'lodash';
 import db from './db';
 import models from './models';
 import routes from './routes';
 import { COOKIE_SESSION_NAME, COOKIE_SESSION_SECRET } from './config';
-import { setRootOption } from '../src/options';
-import macl from '../src/middleware';
+import macl from '../src';
 
 console.log(!!models);
 
-setRootOption('rootPermissions', async function (req) {
+macl.setRootOption('rootPermissions', async function (req) {
   const User = mongoose.model('User');
   const userName = req.headers.user;
 
@@ -77,10 +75,6 @@ const initExpresss = async (options?: Props) => {
   expressServer.use(macl());
 
   expressServer.use('/api', routes);
-
-  listEndpoints(expressServer).forEach((endpoint) => {
-    console.log(`${endpoint.path} (${endpoint.methods.join(', ')})`);
-  });
 
   return expressServer;
 };

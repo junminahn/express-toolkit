@@ -1,6 +1,6 @@
 {
   "name": "express-mongoose-acl",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "REST API Access control built in Express and Mongoose",
   "license": "MIT",
   "main": "./lib/index.js",
@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "express-json-router": "0.2.1",
+    "express-list-endpoints": "^6.0.0",
     "lodash": "^4.17.21"
   },
   "devDependencies": {
@@ -33,7 +34,6 @@
     "cookie-parser": "^1.4.5",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
-    "express-list-endpoints": "^6.0.0",
     "express-session": "^1.17.2",
     "memorystore": "^1.6.6",
     "mocha": "^9.0.3",

@@ -1,4 +1,4 @@
-import ModelRouter from '../../src';
+import macl from '../../src';
 import { Permissions } from '../../src/permission';
 
 // baseUrl: false,
@@ -11,7 +11,7 @@ import { Permissions } from '../../src/permission';
 // docPermissions,
 // routeGuard: true,
 
-const userRouter = new ModelRouter('User', {
+const userRouter = macl.createRouter('User', {
   baseUrl: null,
   permissionSchema: {
     name: { list: true, read: true, update: 'edit.name', create: true },

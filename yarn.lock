@@ -2,6 +2,20 @@
 # yarn lockfile v1
 
 
+"@angular/common@^13.1.1":
+  version "13.1.1"
+  resolved "https://registry.yarnpkg.com/@angular/common/-/common-13.1.1.tgz#e8b659d6376d6764cd2516a4c6d604aafe24cb88"
+  integrity sha512-FQwRZ1XgTH2PbPjBmq2jAZzETVNX9yWQt21MuNGtokC7V4eS0NYlFIDbhy3UPWCzRgd3+P7P4+HdX15VxCjf9g==
+  dependencies:
+    tslib "^2.3.0"
+
+"@angular/core@^13.1.1":
+  version "13.1.1"
+  resolved "https://registry.yarnpkg.com/@angular/core/-/core-13.1.1.tgz#bc01b1d7e1d21749a595b0ae8cab5b8f51fb7dbc"
+  integrity sha512-oLGKgzUbHqte/q7EokOJWUiXAtBjwuZM6c9Or2a7WDJNeImQilxk5qy91RPSbP8FhOBysebqAayrfiCYexlShg==
+  dependencies:
+    tslib "^2.3.0"
+
 "@babel/code-frame@^7.0.0":
   version "7.16.0"
   resolved "https://registry.yarnpkg.com/@babel/code-frame/-/code-frame-7.16.0.tgz#0dfc80309beec8411e65e706461c408b0bb9b431"
@@ -6223,6 +6237,13 @@ rxjs@^6.4.0, rxjs@^6.6.0:
   dependencies:
     tslib "^1.9.0"
 
+rxjs@^7.5.1:
+  version "7.5.1"
+  resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-7.5.1.tgz#af73df343cbcab37628197f43ea0c8256f54b157"
+  integrity sha512-KExVEeZWxMZnZhUZtsJcFwz8IvPvgu4G2Z2QyqjZQzUGr32KDYuSxrEYO4w3tFFNbfLozcrKUTvTPi+E9ywJkQ==
+  dependencies:
+    tslib "^2.1.0"
+
 safe-buffer@5.1.2, safe-buffer@~5.1.0, safe-buffer@~5.1.1:
   version "5.1.2"
   resolved "https://registry.yarnpkg.com/safe-buffer/-/safe-buffer-5.1.2.tgz#991ec69d296e0313747d59bdfd2b745c35f8828d"
@@ -6932,7 +6953,7 @@ tslib@^1.8.1, tslib@^1.9.0:
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.14.1.tgz#cf2d38bdc34a134bcaf1091c41f6619e2f672d00"
   integrity sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==
 
-tslib@^2:
+tslib@^2, tslib@^2.1.0, tslib@^2.3.0:
   version "2.3.1"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.3.1.tgz#e8a335add5ceae51aa261d32a490158ef042ef01"
   integrity sha512-77EbyPPpMz+FRFRuAFlWMtmgUWGe9UOG2Z25NqCwiIjRhOf5iKGuzSe5P2w1laq+FkRy4p+PCuVkJSGkzTEKVw==
@@ -7023,7 +7044,7 @@ typescript@^4.3.5:
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.3.5.tgz#4d1c37cc16e893973c45a06886b7113234f119f4"
   integrity sha512-DqQgihaQ9cUrskJo9kIyW/+g0Vxsk8cDtZ52a3NGh0YNTfpUSArXSohyUGnvbPazEPLu398C0UxmKSOrPumUzA==
 
-typescript@^4.4.3:
+typescript@^4.4.3, typescript@^4.5.4:
   version "4.5.4"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.5.4.tgz#a17d3a0263bf5c8723b9c52f43c5084edf13c2e8"
   integrity sha512-VgYs2A2QIRuGphtzFV7aQJduJ2gyfTljngLzjpfW9FoYZF6xuw1W0vW9ghCKLfcWrCFxK81CSGRAvS1pn4fIUg==

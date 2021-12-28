@@ -21,11 +21,11 @@ const defaultRootOptions = { permissionField: '_permissions', idParam: 'id', roo
 let currentRootOptions = { ...defaultRootOptions };
 let modelOptions = {};
 
-export const setRootOptions = (options) => {
+export const setRootOptions = (options: any) => {
   currentRootOptions = { ...defaultRootOptions, ...currentRootOptions, ...options };
 };
 
-export const setRootOption = (optionKey, value) => {
+export const setRootOption = (optionKey: string, value: any) => {
   set(currentRootOptions, optionKey, value);
 };
 
