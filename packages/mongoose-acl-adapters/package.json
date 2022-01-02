@@ -1,0 +1,26 @@
+{
+  "name": "mongoose-acl-adapters",
+  "version": "0.1.0-alpha-0",
+  "description": "",
+  "scripts": {
+    "build": "tsc -d",
+    "dev": "tsc -w",
+    "lint": "git ls-files '*.js' '*.ts' | xargs yarn eslint",
+    "test": "mocha -r ts-node/register test/**/*.spec.ts --exit",
+    "pre-publish": "node ../../scripts/pre-publish.js --name=mongoose-acl-adapters",
+    "sync-version": "node ../../scripts/sync-version.js --name=mongoose-acl-adapters"
+  },
+  "author": "Junmin Ahn",
+  "license": "MIT",
+  "devDependencies": {
+    "@angular/common": "^13.1.1",
+    "@angular/core": "^13.1.1",
+    "rxjs": "^7.5.1",
+    "typescript": "^4.5.4"
+  },
+  "peerDependencies": {
+    "@angular/common": "^13.1.1",
+    "@angular/core": "^13.1.1",
+    "rxjs": "^7.5.1"
+  }
+}

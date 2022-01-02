@@ -169,18 +169,19 @@ class Controller {
   async read(
     id,
     {
-      select = this.defaults.read?.select,
-      populate = this.defaults.read?.populate,
+      select: _select = this.defaults.read?.select,
+      populate: _populate = this.defaults.read?.populate,
       options = this.defaults.read?.options || {},
     }: ReadProps = {},
   ) {
-    const { includePermissions = true, tryList = true, populateAccess = 'read', lean = false } = options;
+    let access = 'read';
+    const { includePermissions = true, tryList = true, populateAccess, lean = false } = options;
+    const idQuery = await this.req._genIDQuery(this.modelName, id);
 
-    let query = null;
-    [query, select, populate] = await Promise.all([
-      this.req._genQuery(this.modelName, 'read', await this.req._genIDQuery(this.modelName, id)),
-      this.req._genSelect(this.modelName, 'read', select),
-      this.req._genPopulate(this.modelName, populateAccess, populate),
+    let [query, select, populate] = await Promise.all([
+      this.req._genQuery(this.modelName, access, idQuery),
+      this.req._genSelect(this.modelName, access, _select),
+      this.req._genPopulate(this.modelName, populateAccess || access, _populate),
     ]);
 
     if (query === false) return null;
@@ -189,9 +190,12 @@ class Controller {
 
     // if not found, try to get the doc with 'list' access
     if (!doc && tryList) {
-      [query, select] = await Promise.all([
-        this.req._genQuery(this.modelName, 'list', await this.req._genIDQuery(this.modelName, id)),
-        this.req._genSelect(this.modelName, 'list', select),
+      access = 'list';
+
+      [query, select, populate] = await Promise.all([
+        this.req._genQuery(this.modelName, access, idQuery),
+        this.req._genSelect(this.modelName, access, _select),
+        this.req._genPopulate(this.modelName, populateAccess || access, _populate),
       ]);
 
       doc = await this.model.findOne({ query, select, populate, lean });
@@ -199,9 +203,9 @@ class Controller {
 
     if (!doc) return null;
 
-    if (includePermissions) doc = await this.req._permit(this.modelName, doc, 'read');
-    doc = await this.req._pickAllowedFields(this.modelName, doc, 'read', ['_id', this.options.permissionField]);
-    doc = await this.req._decorate(this.modelName, doc, 'read');
+    if (includePermissions) doc = await this.req._permit(this.modelName, doc, access);
+    doc = await this.req._pickAllowedFields(this.modelName, doc, access, ['_id', this.options.permissionField]);
+    doc = await this.req._decorate(this.modelName, doc, access);
 
     return doc;
   }

@@ -17,11 +17,11 @@ $ yarn add express-mongoose-acl
 ## Usage
 
 ```js
-const ModelRouter = require('express-mongoose-acl').default;
+const macl = require('express-mongoose-acl').default;
 const express = require('express');
 const router = express.Router();
 
-const userRouter = new ModelRouter('User', { baseUrl: null });
+const userRouter = macl.createRouter('User', { baseUrl: null });
 
 userRouter.permissionSchema({
   name: { list: true, read: true, update: 'edit.name', create: 'isAdmin' },

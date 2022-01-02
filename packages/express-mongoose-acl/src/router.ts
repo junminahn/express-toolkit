@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import JsonRouter from 'express-json-router';
-import listEndpoints from 'express-list-endpoints';
 import get from 'lodash/get';
 import pick from 'lodash/pick';
 import isNil from 'lodash/isNil';
@@ -359,11 +358,11 @@ class ModelRouter {
   }
 
   private logEndpoints() {
-    listEndpoints(this.routes).forEach((endpoint) => {
-      if (endpoint.path.startsWith(this.basename)) {
-        console.log(`ACL: ${endpoint.path} (${endpoint.methods.join(', ')})`);
-      }
-    });
+    // listEndpoints(this.routes).forEach((endpoint) => {
+    //   if (endpoint.path.startsWith(this.basename)) {
+    //     console.log(`ACL: ${endpoint.path} (${endpoint.methods.join(', ')})`);
+    //   }
+    // });
   }
 
   set(optionKey: string, option: any) {
