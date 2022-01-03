@@ -23,7 +23,6 @@
     "@typescript-eslint/eslint-plugin": "^5.8.0",
     "@typescript-eslint/parser": "^5.8.0",
     "chalk": "^4.1.1",
-    "cz-conventional-changelog": "^3.3.0",
     "eslint": "^8.5.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-airbnb-typescript": "^16.1.0",
@@ -34,7 +33,6 @@
     "glob": "^7.2.0",
     "lerna": "^4.0.0",
     "prettier": "^2.5.1",
-    "standard-version": "^9.3.2",
     "yargs": "^17.3.1"
   }
 }
