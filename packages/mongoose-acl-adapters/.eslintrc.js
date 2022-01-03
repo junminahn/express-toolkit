@@ -8,6 +8,8 @@ module.exports = {
     createDefaultProgram: true,
   },
   root: true,
-  rules: {},
+  rules: {
+    '@typescript-eslint/lines-between-class-members': 0,
+  },
   overrides: [],
 };
