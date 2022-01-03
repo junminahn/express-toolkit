@@ -18,7 +18,7 @@ export const up = async ({ databaseUrl = DATABASE_URI } = {}) => {
   });
 
   try {
-    await mongoose.connect(databaseUrl, { useNewUrlParser: true, useUnifiedTopology: true });
+    await mongoose.connect(databaseUrl);
     console.log('%s MongoDB is connected successfully.', chalk.green('✓'));
   } catch (error) {
     console.error(error);
