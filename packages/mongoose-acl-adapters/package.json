@@ -6,7 +6,6 @@
     "build": "tsc -d",
     "dev": "tsc -w",
     "lint": "git ls-files '*.js' '*.ts' | xargs yarn eslint",
-    "test": "mocha -r ts-node/register test/**/*.spec.ts --exit",
     "pre-publish": "node ../../scripts/pre-publish.js --name=mongoose-acl-adapters",
     "sync-version": "node ../../scripts/sync-version.js --name=mongoose-acl-adapters"
   },
