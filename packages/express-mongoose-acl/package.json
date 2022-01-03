@@ -38,7 +38,7 @@
     "mocha": "^9.0.3",
     "mongoose": "^6.1.4",
     "morgan": "^1.10.0",
-    "nodemon": "^2.0.12",
+    "nodemon": "^2.0.15",
     "supertest": "^6.1.4",
     "ts-node": "^10.1.0",
     "typescript": "^4.3.5"
