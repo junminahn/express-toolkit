@@ -49,16 +49,24 @@ function promiseReturnTest(req, res) {
         .then(({ name }) => testEqual('result findOneAndUpdate', name, 'test2'))
         // update
         .then(() => Test.update({ name: 'test2', timestamp }, { name: 'test3' }))
-        .then(({ ok, nModified, n }) => testEqual('result update', nModified, 1))
+        .then(({ acknowledged, modifiedCount, upsertedId, upsertedCount, matchedCount }) =>
+          testEqual('result update', modifiedCount, 1),
+        )
         // updateOne
         .then(() => Test.updateOne({ name: 'test3', timestamp }, { name: 'test4' }))
-        .then(({ ok, nModified, n }) => testEqual('result updateOne', nModified, 1))
+        .then(({ acknowledged, modifiedCount, upsertedId, upsertedCount, matchedCount }) =>
+          testEqual('result updateOne', modifiedCount, 1),
+        )
         // updateMany
         .then(() => Test.updateMany({ name: 'test4', timestamp }, { name: 'test5' }))
-        .then(({ ok, nModified, n }) => testEqual('result updateMany', nModified, 1))
+        .then(({ acknowledged, modifiedCount, upsertedId, upsertedCount, matchedCount }) =>
+          testEqual('result updateMany', modifiedCount, 1),
+        )
         // replaceOne
         .then(() => Test.replaceOne({ name: 'test5', timestamp }, { name: 'test6' }))
-        .then(({ ok, nModified, n }) => testEqual('result replaceOne', nModified, 1))
+        .then(({ acknowledged, modifiedCount, upsertedId, upsertedCount, matchedCount }) =>
+          testEqual('result replaceOne', modifiedCount, 1),
+        )
         // findOneAndRemove
         .then(() => Test.findOneAndRemove({ name: 'test6', timestamp }))
         .then(() => Test.count({ name: 'test6', timestamp }).then(zeroCount))

@@ -1,6 +1,6 @@
 {
   "name": "express-mong",
-  "version": "0.9.1",
+  "version": "0.10.1",
   "description": "Mongoose wrapper to inject request object into mongoose Query, Document, and Hooks",
   "scripts": {
     "test": "node test",
@@ -40,7 +40,11 @@
   "license": "MIT",
   "devDependencies": {
     "chalk": "^4.1.0",
-    "express": "^4.17.1",
-    "mongoose": "^5.12.2"
+    "express": "^4.17.2",
+    "mongoose": "^6.1.4"
+  },
+  "peerDependencies": {
+    "express": "^4.17.2",
+    "mongoose": "^6.1.4"
   }
 }
