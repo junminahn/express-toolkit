@@ -142,6 +142,10 @@ class Controller {
 
         const allowedFields = await this.req._genAllowedFields(this.modelName, item, 'create');
         const allowedData = pick(item, allowedFields);
+
+        const errors = await this.req._validate(this.modelName, allowedData, 'create', context);
+        if (errors?.length > 0) throw new Error(JSON.stringify({ message: 'validation failed', errors }));
+
         const preparedData = await this.req._prepare(this.modelName, allowedData, 'create', context);
 
         context.preparedData = preparedData;
@@ -229,6 +233,10 @@ class Controller {
     context.currentDoc = doc;
     const allowedFields = await this.req._genAllowedFields(this.modelName, doc, 'update');
     const allowedData = pick(data, allowedFields);
+
+    const errors = await this.req._validate(this.modelName, allowedData, 'update', context);
+    if (errors?.length > 0) throw new Error(JSON.stringify({ message: 'validation failed', errors }));
+
     const prepared = await this.req._prepare(this.modelName, allowedData, 'update', context);
 
     context.preparedData = prepared;

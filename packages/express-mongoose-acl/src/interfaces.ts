@@ -1,13 +1,13 @@
-type ValidationType = boolean | string | string[] | Function;
+type Validation = boolean | string | string[] | Function;
 
 interface Access {
-  list?: ValidationType;
-  create?: ValidationType;
-  read?: ValidationType;
-  update?: ValidationType;
-  delete?: ValidationType;
-  distinct?: ValidationType;
-  count?: ValidationType;
+  list?: Validation;
+  create?: Validation;
+  read?: Validation;
+  update?: Validation;
+  delete?: Validation;
+  distinct?: Validation;
+  count?: Validation;
   sub?: any;
 }
 
@@ -80,10 +80,11 @@ export interface ModelRouterProps {
   permissionField?: string;
   permissionFields?: string[];
   docPermissions?: DocPermissions | Function;
-  routeGuard?: ValidationType | Access;
+  routeGuard?: Validation | Access;
   baseQuery?: any;
   decorate?: any;
   decorateAll?: any;
+  validate?: any;
   prepare?: any;
   transform?: any;
   identifier?: string | Function;

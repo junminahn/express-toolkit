@@ -86,6 +86,9 @@ const userRouter = macl.createRouter('User', {
       },
     },
   },
+  validate: function () {
+    return [];
+  },
   decorate: {
     default: [
       function (doc) {

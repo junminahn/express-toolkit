@@ -255,6 +255,12 @@ export async function genPopulate(modelName: string, access: string = 'read', _p
   return populate;
 }
 
+export async function validate(modelName: string, allowedData: any, access: string, context: MiddlewareContext = {}) {
+  const validate = getModelOption(modelName, `validate.${access}`, null);
+  const permissions = this[PERMISSIONS];
+  return isFunction(validate) ? (validate.call(this, allowedData, permissions, context) as boolean | any[]) : false;
+}
+
 export async function prepare(modelName: string, allowedData: any, access: string, context: MiddlewareContext = {}) {
   const prepare = getModelOption(modelName, `prepare.${access}`, null);
   const permissions = this[PERMISSIONS];
@@ -356,6 +362,7 @@ export async function setGenerators(req, res, next) {
   req._genSelect = genSelect.bind(req);
   req._pickAllowedFields = pickAllowedFields.bind(req);
   req._genPopulate = genPopulate.bind(req);
+  req._validate = validate.bind(req);
   req._prepare = prepare.bind(req);
   req._transform = transform.bind(req);
   req._permit = permit.bind(req);
