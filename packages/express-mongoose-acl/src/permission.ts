@@ -40,6 +40,14 @@ class Permission {
       return this.has(permission);
     });
   }
+
+  any(permissions) {
+    return this.hasAny(permissions);
+  }
+
+  all(permissions) {
+    return this.hasAll(permissions);
+  }
 }
 
 export default Permission;

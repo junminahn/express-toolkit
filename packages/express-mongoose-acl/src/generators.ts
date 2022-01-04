@@ -42,6 +42,23 @@ const callMiddleware = async (
   return doc;
 };
 
+const createValidator = (fn: (key) => boolean) => {
+  const stringHandler = (key) =>
+    key
+      .trim()
+      .split(' ')
+      .every((v) => fn(v));
+
+  const arrayHandler = (arr) =>
+    arr.some((item) => {
+      if (isString(item)) return stringHandler(item);
+      else if (isArray(item)) return arrayHandler(item);
+      else return false;
+    });
+
+  return [stringHandler, arrayHandler];
+};
+
 export async function genIDQuery(modelName: string, id: string) {
   const identifier = getModelOption(modelName, 'identifier', '_id');
 
@@ -118,6 +135,9 @@ export async function genAllowedFields(modelName: string, doc: any, access: stri
   const keys = Object.keys(permissionSchema);
   // const keys = getModelKeys(doc);
 
+  const phas = (key) => permissions.has(key) || modelPermissions[key];
+  const [stringHandler, arrayHandler] = createValidator(phas);
+
   for (let x = 0; x < keys.length; x++) {
     const key = keys[x];
     if (baseFields.includes(key)) continue;
@@ -128,7 +148,9 @@ export async function genAllowedFields(modelName: string, doc: any, access: stri
     if (isBoolean(value)) {
       if (value) fields.push(key);
     } else if (isString(value)) {
-      if (permissions.has(value) || modelPermissions[value]) fields.push(key);
+      if (stringHandler(value)) fields.push(key);
+    } else if (isArray(value)) {
+      if (arrayHandler(value)) fields.push(key);
     } else if (isFunction(value)) {
       if (await value.call(this, permissions, modelPermissions)) fields.push(key);
     }
@@ -156,6 +178,19 @@ export async function genSelect(
   if (!permissionSchema) return fields;
 
   const permissions = this[PERMISSIONS];
+
+  const phas = (key) => {
+    if (permissions.prop(key)) {
+      if (permissions.has(key)) return true;
+    } else if (skipChecks) {
+      return true;
+    }
+
+    return false;
+  };
+
+  const [stringHandler, arrayHandler] = createValidator(phas);
+
   const keys = Object.keys(permissionSchema);
   for (let x = 0; x < keys.length; x++) {
     const key = keys[x];
@@ -165,11 +200,9 @@ export async function genSelect(
     if (isBoolean(value)) {
       if (value) fields.push(key);
     } else if (isString(value)) {
-      if (permissions.prop(value)) {
-        if (permissions.has(value)) fields.push(key);
-      } else if (skipChecks) {
-        fields.push(key);
-      }
+      if (stringHandler(value)) fields.push(key);
+    } else if (isArray(value)) {
+      if (arrayHandler(value)) fields.push(key);
     } else if (isFunction(value)) {
       fields.push(key);
     }
@@ -293,13 +326,15 @@ export async function isAllowed(modelName, access) {
   let allowed = false;
 
   const permissions = this[PERMISSIONS];
+  const phas = (key) => permissions.has(key);
+  const [stringHandler, arrayHandler] = createValidator(phas);
 
   if (isBoolean(routeGuard)) {
     return routeGuard === true;
   } else if (isString(routeGuard)) {
-    return permissions.has(routeGuard);
+    return stringHandler(routeGuard);
   } else if (isArray(routeGuard)) {
-    return permissions.hasAny(routeGuard);
+    return arrayHandler(routeGuard);
   } else if (isFunction(routeGuard)) {
     return routeGuard.call(this, permissions);
   }

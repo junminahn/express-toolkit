@@ -14,7 +14,7 @@ import { Permissions } from '../../src/permission';
 const userRouter = macl.createRouter('User', {
   baseUrl: null,
   permissionSchema: {
-    name: { list: true, read: true, update: 'edit.name', create: true },
+    name: { list: true, read: true, update: ['edit.name', 'edit.dummy'], create: true },
     role: { list: 'isAdmin', read: true, update: 'edit.role', create: true },
     public: { list: false, read: true, update: 'edit.public', create: true },
     statusHistory: {
@@ -103,7 +103,7 @@ userRouter.routeGuard({
   read: true,
   update: true,
   delete: 'isAdmin',
-  create: 'isAdmin',
+  create: ['isAdmin', 'dummy'],
   subs: {
     statusHistory: { list: true, read: true, update: true, delete: 'isAdmin', create: 'isAdmin' },
   },

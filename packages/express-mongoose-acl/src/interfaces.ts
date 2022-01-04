@@ -1,4 +1,4 @@
-type ValidationType = boolean | string | Function;
+type ValidationType = boolean | string | string[] | Function;
 
 interface Access {
   list?: ValidationType;
