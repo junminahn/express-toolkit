@@ -18,6 +18,7 @@ jobs:
           key: ${{ runner.os }}-${{ hashFiles('**/.tool-versions') }}
       - name: Install required tools
         run: |
+          asdf plugin-add mongodb https://github.com/junminahn/asdf-mongodb.git
           cat .tool-versions | cut -f 1 -d ' ' | xargs -n 1 asdf plugin-add || true
           asdf plugin-update --all
           # bash ~/.asdf/plugins/nodejs/bin/import-release-team-keyring
