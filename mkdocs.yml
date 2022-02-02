@@ -1,3 +1,4 @@
 site_name: Express Toolkit
+site_url: https://junminahn.com/express-toolkit/
 docs_dir: mkdocs
 theme: material
