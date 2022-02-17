@@ -46,15 +46,15 @@ jobs:
         run: |
           rm -rf .git
           cd site
+          touch ./out/.nojekyll
           git init
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
           git config commit.gpgsign false
           git add .
-          git commit -m "initial commit"
+          git commit -m "deploy MkDocs site to github pages"
           git branch -M gh-pages
-          git remote add origin "https://$GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }}@github.com/express-toolkit/express-toolkit.github.io.git"
-          git push -uf origin gh-pages
+          git push --force --quiet git@github.com:express-toolkit/express-toolkit.github.io.git gh-pages
 
       # - name: Deploy docs
       #   uses: mhausenblas/mkdocs-deploy-gh-pages@master
