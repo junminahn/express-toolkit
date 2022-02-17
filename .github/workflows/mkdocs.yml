@@ -28,6 +28,11 @@ jobs:
           asdf install
           asdf reshim
 
+      - name: Install python tools
+        run: |
+          pip install -r requirements.txt
+          asdf reshim
+
       - name: Build the MkDocs site
         run: |
           make mk_build
