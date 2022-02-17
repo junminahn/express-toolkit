@@ -37,6 +37,11 @@ jobs:
         run: |
           make mk_build
 
+      - name: Attach SSH Private Key
+        uses: junminahn/action-ssh@v0.2.0
+        with:
+          encryption_key: ${{ secrets.ENCRYPTION_KEY }}
+
       - name: Push the MkDocs site
         run: |
           rm -rf .git
