@@ -11,9 +11,44 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Deploy docs
-        uses: mhausenblas/mkdocs-deploy-gh-pages@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CONFIG_FILE: mkdocs.yml
-          REQUIREMENTS: requirements.txt
+      - name: Install asdf
+        uses: asdf-vm/actions/setup@v1
+      - name: Cache asdf tools
+        uses: actions/cache@v2
+        with:
+          path: |
+            /home/runner/.asdf
+          key: ${{ runner.os }}-${{ hashFiles('**/.tool-versions') }}
+
+      - name: Install required tools
+        run: |
+          asdf plugin-add mongodb https://github.com/junminahn/asdf-mongodb.git || true
+          cat .tool-versions | cut -f 1 -d ' ' | xargs -n 1 asdf plugin-add || true
+          asdf plugin-update --all
+          asdf install
+          asdf reshim
+
+      - name: Build the MkDocs site
+        run: |
+          make mk_build
+
+      - name: Push the MkDocs site
+        run: |
+          rm -rf .git
+          cd site
+          git init
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+          git config commit.gpgsign false
+          git add .
+          git commit -m "initial commit"
+          git branch -M gh-pages
+          git remote add origin "https://$GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }}@github.com/express-toolkit/express-toolkit.github.io.git"
+          git push -uf origin gh-pages
+
+      # - name: Deploy docs
+      #   uses: mhausenblas/mkdocs-deploy-gh-pages@master
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     CONFIG_FILE: mkdocs.yml
+      #     REQUIREMENTS: requirements.txt
