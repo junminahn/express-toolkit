@@ -1,5 +1,3 @@
-const { green, cyan, red } = require('chalk');
-
 const path = require('path');
 const fse = require('fs-extra');
 const { argv } = require('yargs');
@@ -7,7 +5,7 @@ const { argv } = require('yargs');
 const { name } = argv;
 
 if (!name) {
-  console.error(red('package name is not provided!'));
+  console.error('package name is not provided!');
   process.exit(1);
 }
 

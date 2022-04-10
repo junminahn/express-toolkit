@@ -1,5 +1,3 @@
-const { green, red } = require('chalk');
-
 const path = require('path');
 const fse = require('fs-extra');
 const { argv } = require('yargs');
@@ -8,7 +6,7 @@ const glob = require('glob');
 const { name } = argv;
 
 if (!name) {
-  console.error(red('package name is not provided!'));
+  console.error('package name is not provided!');
   process.exit(1);
 }
 
@@ -49,7 +47,7 @@ workspacePackages.forEach((dir) => {
           pjson[type][targetName] = targetVersion;
           updated = true;
 
-          console.log(green(`updated the version in ${file}.${type}`));
+          console.log(`updated the version in ${file}.${type}`);
         }
       });
 

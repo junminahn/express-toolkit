@@ -1,4 +1,3 @@
-const chalk = require('chalk');
 const http = require('http');
 
 const BASE_URL = 'http://127.0.0.1:8080';
@@ -22,14 +21,14 @@ const getAPI = (apiUrl) => {
 
 const testEqual = (description, val1, val2) => {
   const log = `${description}, ${val1}, ${val2}`;
-  if (val1 === val2) console.log(chalk.green(log));
-  else console.error(chalk.red(log));
+  if (val1 === val2) console.log(log);
+  else console.error(log);
 };
 
 const testNotEqual = (description, val1, val2) => {
   const log = `${description}, ${val1}, ${val2}`;
-  if (val1 !== val2) console.log(chalk.green(log));
-  else console.error(chalk.red(log));
+  if (val1 !== val2) console.log(log);
+  else console.error(log);
 };
 
 module.exports = { getAPI, testEqual, testNotEqual };

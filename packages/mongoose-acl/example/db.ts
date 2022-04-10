@@ -1,5 +1,4 @@
 // see https://mongoosejs.com/docs/connections.html
-import chalk from 'chalk';
 import mongoose from 'mongoose';
 
 mongoose.set('debug', false);
@@ -19,15 +18,15 @@ export const up = async ({ databaseUrl = DATABASE_URI } = {}) => {
 
   try {
     await mongoose.connect(databaseUrl);
-    console.log('%s MongoDB is connected successfully.', chalk.green('✓'));
+    console.log('%s MongoDB is connected successfully.', '✓');
   } catch (error) {
     console.error(error);
-    console.log('%s MongoDB connection error. Please make sure MongoDB is running.', chalk.red('✗'));
+    console.log('%s MongoDB connection error. Please make sure MongoDB is running.', '✗');
   }
 
   mongoose.connection.on('error', (error) => {
     console.error(error);
-    console.log('%s MongoDB connection error. Please make sure MongoDB is running.', chalk.red('✗'));
+    console.log('%s MongoDB connection error. Please make sure MongoDB is running.', '✗');
   });
 };
 
@@ -36,10 +35,10 @@ export const down = async ({ dropDatabase = false } = {}) => {
 
   try {
     await mongoose.disconnect();
-    console.log('%s MongoDB is disconnection successfully.', chalk.green('✓'));
+    console.log('%s MongoDB is disconnection successfully.', '✓');
   } catch (error) {
     console.error(error);
-    console.log('%s MongoDB disconnection error.', chalk.red('✗'));
+    console.log('%s MongoDB disconnection error.', '✗');
   }
 };
 
