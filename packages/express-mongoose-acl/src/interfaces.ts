@@ -119,5 +119,5 @@ export interface MiddlewareContext {
   originalData?: keyValue;
   preparedData?: keyValue;
   modifiedPaths?: string[];
-  modelPermissions?: keyValue;
+  docPermissions?: keyValue;
 }

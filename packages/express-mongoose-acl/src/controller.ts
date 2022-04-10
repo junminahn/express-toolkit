@@ -10,7 +10,7 @@ import compact from 'lodash/compact';
 import flatten from 'lodash/flatten';
 import Model from './model';
 import { setModelOptions, setModelOption, getModelOptions } from './options';
-import { normalizeSelect, iterateQuery } from './helpers';
+import { normalizeSelect, iterateQuery, CustomError } from './helpers';
 import {
   ModelRouterProps,
   MiddlewareContext,
@@ -144,7 +144,7 @@ class Controller {
         const allowedData = pick(item, allowedFields);
 
         const errors = await this.req._validate(this.modelName, allowedData, 'create', context);
-        if (errors?.length > 0) throw new Error(JSON.stringify({ message: 'validation failed', errors }));
+        if (errors?.length > 0) throw new CustomError({ message: 'validation failed', errors });
 
         const preparedData = await this.req._prepare(this.modelName, allowedData, 'create', context);
 
@@ -235,7 +235,7 @@ class Controller {
     const allowedData = pick(data, allowedFields);
 
     const errors = await this.req._validate(this.modelName, allowedData, 'update', context);
-    if (errors?.length > 0) throw new Error(JSON.stringify({ message: 'validation failed', errors }));
+    if (errors?.length > 0) throw new CustomError({ message: 'validation failed', errors });
 
     const prepared = await this.req._prepare(this.modelName, allowedData, 'update', context);
 

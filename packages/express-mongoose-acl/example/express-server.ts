@@ -14,7 +14,7 @@ import macl from '../src';
 
 console.log(!!models);
 
-macl.setRootOption('rootPermissions', async function (req) {
+macl.set('globalPermissions', async function (req) {
   const User = mongoose.model('User');
   const userName = req.headers.user;
 
@@ -24,7 +24,7 @@ macl.setRootOption('rootPermissions', async function (req) {
   }
 
   req._user = user;
-  return { isAdmin: user?.role === 'admin', userId: user?._id };
+  return { isAdmin: user?.role === 'admin' };
 });
 
 const MemoryStore = memorystore(session);

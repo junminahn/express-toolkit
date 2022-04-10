@@ -17,20 +17,31 @@ modelNames.forEach((modelName) => {
   modelSubs[modelName] = subPaths;
 });
 
-const defaultRootOptions = { permissionField: '_permissions', idParam: 'id', rootPermissions: () => ({}) };
-let currentRootOptions = { ...defaultRootOptions };
+export interface GlobalOptions {
+  permissionField?: string;
+  idParam?: string;
+  globalPermissions?: () => any;
+}
+
+const defaultGlobalOptions: GlobalOptions = {
+  permissionField: '_permissions',
+  idParam: 'id',
+  globalPermissions: () => ({}),
+};
+
+let currentGlobalOptions = { ...defaultGlobalOptions };
 let modelOptions = {};
 
-export const setRootOptions = (options: any) => {
-  currentRootOptions = { ...defaultRootOptions, ...currentRootOptions, ...options };
+export const setGlobalOptions = (options: GlobalOptions) => {
+  currentGlobalOptions = { ...defaultGlobalOptions, ...currentGlobalOptions, ...options };
 };
 
-export const setRootOption = (optionKey: string, value: any) => {
-  set(currentRootOptions, optionKey, value);
+export const setGlobalOption = (optionKey: string, value: any) => {
+  set(currentGlobalOptions, optionKey, value);
 };
 
-export const getRootOption = (optionKey: string, defaultValue?: any) =>
-  get(currentRootOptions, optionKey, defaultValue);
+export const getGlobalOption = (optionKey: string, defaultValue?: any) =>
+  get(currentGlobalOptions, optionKey, defaultValue);
 
 const updateModelOptions = (modelName: string) => {
   const options = modelOptions[modelName];

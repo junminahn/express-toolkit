@@ -1,21 +1,9 @@
 SHELL := /usr/bin/env bash
 
-.PHONY: mk_serve
-mk_serve:
+.PHONY: mk-serve
+mk-serve:
 	mkdocs serve
 
-.PHONY: mk_build
-mk_build:
+.PHONY: mk-build
+mk-build:
 	mkdocs build
-
-.PHONY: lint
-lint:
-	helm upgrade --dry-run --install sso-keycloak -n "${NAMESPACE}" -f values.yaml -f "values-${NAMESPACE}.yaml"
-
-.PHONY: uninstall
-uninstall:
-	helm uninstall sso-keycloak -n ${NAMESPACE}
-
-.PHONY: force-install
-force-install: uninstall
-force-install: install

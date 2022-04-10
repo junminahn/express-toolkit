@@ -10,6 +10,7 @@ const { Response } = require('./responses');
  * Helper functions to identify specific types.
  */
 const isFunction = (fn) => typeof fn === 'function';
+const isString = (val) => typeof val === 'string';
 const isPromise = (p) => p && isFunction(p.then);
 const promisify = (p) => (isPromise(p) ? p : (a) => Promise.resolve(p(a)));
 const { isArray } = Array;
@@ -58,9 +59,13 @@ const _sendError = function (res, err, event) {
   if (event.canceled) return;
 
   if (err.statusCode) {
-    res.status(err.statusCode).send({ message: err.message });
+    const payload = { message: err.message || '' };
+    if (err.errors) payload.errors = err.errors;
+    res.status(err.statusCode).send(payload);
   } else {
-    res.status(422).send({ message: errorMessageProvider._provider(err) });
+    const result = errorMessageProvider._provider(err);
+    const payload = isString(result) ? { message: result } : { ...result };
+    res.status(422).send(payload);
   }
 };
 

@@ -114,3 +114,18 @@ export const normalizeSelect = (select: Projection | null) => {
   if (isString(select)) return select.split(' ').map((v) => v.trim());
   return null;
 };
+
+export class CustomError extends Error {
+  constructor({ statusCode = 422, message = 'Unprocessable Entity', errors = [] } = {}) {
+    super(message);
+
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, CustomError);
+    }
+
+    this.statusCode = statusCode;
+    this.message = message;
+    this.errors = errors;
+    this.date = new Date();
+  }
+}

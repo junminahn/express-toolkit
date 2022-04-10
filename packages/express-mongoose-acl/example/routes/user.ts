@@ -36,7 +36,7 @@ const userRouter = macl.createRouter('User', {
     orgs: { list: true, read: true, update: 'edit.orgs' },
   },
   docPermissions: function (doc, permissions) {
-    const isMe = String(doc._id) === String(permissions.userId);
+    const isMe = String(doc._id) === String(this._user?._id);
     const p = {
       'edit.name': permissions.isAdmin || isMe,
       'edit.role': permissions.isAdmin,
@@ -49,21 +49,21 @@ const userRouter = macl.createRouter('User', {
     return p;
   },
   baseQuery: {
-    list: (permissions: Permissions) => {
+    list: function (permissions: Permissions) {
       if (permissions.isAdmin) return {};
-      else return { $or: [{ _id: permissions.userId }, { public: true }] };
+      else return { $or: [{ _id: this._user?._id }, { public: true }] };
     },
-    read: (permissions) => {
+    read: function (permissions) {
       if (permissions.isAdmin) return {};
-      else return { _id: permissions.userId };
+      else return { _id: this._user?._id };
     },
-    update: (permissions) => {
+    update: function (permissions) {
       if (permissions.isAdmin) return {};
-      else return { _id: permissions.userId };
+      else return { _id: this._user?._id };
     },
-    delete: (permissions) => {
+    delete: function (permissions) {
       if (permissions.isAdmin) return {};
-      else return { _id: permissions.userId };
+      else return { _id: this._user?._id };
     },
     subs: {
       statusHistory: {

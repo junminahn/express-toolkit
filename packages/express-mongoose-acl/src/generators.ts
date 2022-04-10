@@ -14,7 +14,7 @@ import forEach from 'lodash/forEach';
 import compact from 'lodash/compact';
 import intersection from 'lodash/intersection';
 import difference from 'lodash/difference';
-import { getRootOption, getModelOption, getModelRef } from './options';
+import { getGlobalOption, getModelOption, getModelRef } from './options';
 import { Populate, Projection, MiddlewareContext } from './interfaces';
 import Permission, { Permissions } from './permission';
 import Controller from './controller';
@@ -95,16 +95,16 @@ export function genPagination({ page = 1, limit }, hardLimit) {
   return options;
 }
 
-function getModelPermissions(modelName, doc) {
-  const modelPermissionField = getModelOption(modelName, 'permissionField', '_permissions');
-  let modelPermissions = {};
+function getDocPermissions(modelName, doc) {
+  const docPermissionField = getModelOption(modelName, 'permissionField', '_permissions');
+  let docPermissions = {};
   if (isDocument(doc)) {
-    modelPermissions = (doc._doc && doc._doc[modelPermissionField]) || {};
+    docPermissions = (doc._doc && doc._doc[docPermissionField]) || {};
   } else if (isPlainObject(doc)) {
-    modelPermissions = doc[modelPermissionField] || {};
+    docPermissions = doc[docPermissionField] || {};
   }
 
-  return modelPermissions;
+  return docPermissions;
 }
 
 function setModelPermission(doc, path, value) {
@@ -130,12 +130,12 @@ export async function genAllowedFields(modelName: string, doc: any, access: stri
   if (!permissionSchema) return fields;
 
   const permissions = this[PERMISSIONS];
-  const modelPermissions = getModelPermissions(modelName, doc);
+  const docPermissions = getDocPermissions(modelName, doc);
   // get keys from permission schema as some fields might not be filled when created
   const keys = Object.keys(permissionSchema);
   // const keys = getModelKeys(doc);
 
-  const phas = (key) => permissions.has(key) || modelPermissions[key];
+  const phas = (key) => permissions.has(key) || docPermissions[key];
   const [stringHandler, arrayHandler] = createValidator(phas);
 
   for (let x = 0; x < keys.length; x++) {
@@ -152,7 +152,7 @@ export async function genAllowedFields(modelName: string, doc: any, access: stri
     } else if (isArray(value)) {
       if (arrayHandler(value)) fields.push(key);
     } else if (isFunction(value)) {
-      if (await value.call(this, permissions, modelPermissions)) fields.push(key);
+      if (await value.call(this, permissions, docPermissions)) fields.push(key);
     }
   }
 
@@ -204,7 +204,7 @@ export async function genSelect(
     } else if (isArray(value)) {
       if (arrayHandler(value)) fields.push(key);
     } else if (isFunction(value)) {
-      fields.push(key);
+      if (await value.call(this, permissions)) fields.push(key);
     }
   }
 
@@ -275,13 +275,13 @@ export async function transform(modelName: string, doc: any, access: string, con
 
 export async function permit(modelName: string, doc: any, access: string, context: MiddlewareContext = {}) {
   const permit = getModelOption(modelName, `docPermissions.${access}`, null);
-  const modelPermissionField = getModelOption(modelName, 'permissionField', '_permissions');
+  const docPermissionField = getModelOption(modelName, 'permissionField', '_permissions');
 
   if (isFunction(permit)) {
     const permissions = this[PERMISSIONS];
-    setModelPermission(doc, modelPermissionField, await permit.call(this, doc, permissions, context));
+    setModelPermission(doc, docPermissionField, await permit.call(this, doc, permissions, context));
   } else {
-    setModelPermission(doc, modelPermissionField, {});
+    setModelPermission(doc, docPermissionField, {});
   }
 
   const allowedFields = await this._genAllowedFields(modelName, doc, 'update');
@@ -290,7 +290,7 @@ export async function permit(modelName: string, doc: any, access: string, contex
 
   // TODO: make it flexible structure
   forEach(allowedFields, (field) => {
-    setModelPermission(doc, `${modelPermissionField}.edit.${field}`, true);
+    setModelPermission(doc, `${docPermissionField}.edit.${field}`, true);
   });
 
   return doc;
@@ -300,7 +300,7 @@ export async function decorate(modelName: string, doc: any, access: string, cont
   const decorate = getModelOption(modelName, `decorate.${access}`, null);
 
   const permissions = this[PERMISSIONS];
-  context.modelPermissions = getModelPermissions(modelName, doc);
+  context.docPermissions = getDocPermissions(modelName, doc);
 
   return callMiddleware(this, decorate, doc, permissions, context);
 }
@@ -313,17 +313,17 @@ export async function decorateAll(modelName, docs, access) {
 }
 
 export function getPermissions() {
-  const permissionField = getRootOption('permissionField');
+  const permissionField = getGlobalOption('permissionField');
   return new Permission(this[permissionField] || {});
 }
 
 export async function setPermissions() {
-  const permissionField = getRootOption('permissionField');
+  const permissionField = getGlobalOption('permissionField');
   if (this[permissionField]) return;
 
-  const rootPermissions = getRootOption('rootPermissions');
-  if (isFunction(rootPermissions)) {
-    this[permissionField] = await rootPermissions.call(this, this);
+  const globalPermissions = getGlobalOption('globalPermissions');
+  if (isFunction(globalPermissions)) {
+    this[permissionField] = await globalPermissions.call(this, this);
   }
 }
 

@@ -9,7 +9,7 @@ import intersection from 'lodash/intersection';
 import Model from './model';
 
 import { setGenerators } from './generators';
-import { getRootOption, setModelOptions, setModelOption, getModelOptions, getModelSub } from './options';
+import { getGlobalOption, setModelOptions, setModelOption, getModelOptions, getModelSub } from './options';
 import { ModelRouterProps, MiddlewareContext } from './interfaces';
 
 JsonRouter.errorMessageProvider = function (error) {
@@ -62,7 +62,7 @@ class ModelRouter {
       this.basename = baseUrl;
     }
 
-    this.idParam = getRootOption('idParam', 'id');
+    this.idParam = getGlobalOption('idParam', 'id');
     this.setCollectionRoutes();
     this.setDocumentRoutes();
     this.setSubDocumentRoutes();

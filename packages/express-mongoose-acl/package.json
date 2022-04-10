@@ -1,6 +1,6 @@
 {
   "name": "express-mongoose-acl",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "REST API Access control built in Express and Mongoose",
   "license": "MIT",
   "main": "./lib/index.js",
@@ -16,7 +16,7 @@
     "sync-version": "node ../../scripts/sync-version.js --name=express-mongoose-acl"
   },
   "dependencies": {
-    "express-json-router": "0.2.1",
+    "express-json-router": "0.5.1",
     "lodash": "^4.17.21"
   },
   "devDependencies": {
@@ -41,7 +41,7 @@
     "nodemon": "^2.0.15",
     "supertest": "^6.1.4",
     "ts-node": "^10.1.0",
-    "typescript": "^4.3.5"
+    "typescript": "^4.6.3"
   },
   "peerDependencies": {
     "express": "^4.17.2",
