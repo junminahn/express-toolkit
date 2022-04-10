@@ -35,7 +35,7 @@ jobs:
 
       - name: Build the MkDocs site
         run: |
-          make mk_build
+          make mk-build
 
       - name: Attach SSH Private Key
         uses: junminahn/action-ssh@v0.2.0
