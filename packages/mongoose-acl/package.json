@@ -12,8 +12,8 @@
     "example": "nodemon --trace-warnings",
     "lint": "git ls-files '*.js' '*.ts' | xargs yarn eslint",
     "test": "mocha -r ts-node/register test/**/*.spec.ts --exit",
-    "pre-publish": "node ../../scripts/pre-publish.js --name=express-mongoose-acl",
-    "sync-version": "node ../../scripts/sync-version.js --name=express-mongoose-acl"
+    "pre-publish": "node ../../scripts/pre-publish.js --name=mongoose-acl",
+    "sync-version": "node ../../scripts/sync-version.js --name=mongoose-acl"
   },
   "dependencies": {
     "express-json-router": "0.5.1",

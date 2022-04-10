@@ -6,7 +6,7 @@
 
 ## Documentation
 
-please see [Express-toolkit documentation](https://express-toolkit.github.io/express-mongoose-acl)
+please see [Express-toolkit documentation](https://express-toolkit.github.io/mongoose-acl/)
 
 ## Installation
 
