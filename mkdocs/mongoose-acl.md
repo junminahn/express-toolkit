@@ -203,9 +203,38 @@ userRouter.docPermissions(function (docOrObject, permissions: Permissions) {
 
 ## Middleware
 
+### Validate
+
+`Validate` hooks are called before a new/update document data is processed in `prepare` hooks. This method is used to validate `write data` and throw an error if not valid; available in `create` and `update` operations.
+
+```ts
+userRouter.validate({
+  create: function (docObject, permissions, context) {
+    // add create validate logic
+    const validated = validate(docObject);
+    return validated;
+  },
+  update: function (docObject, permissions, context) {
+    // add update validate logic
+    const validated = validate(docObject);
+    return validated;
+  },
+});
+```
+
+or define individual hooks.
+
+```ts
+userRouter.validate('create', function (docObject, permissions, context) {
+  // add create validate logic
+  const validated = validate(docObject);
+  return validated;
+});
+```
+
 ### Prepare
 
-`Prepare` hooks are called before a new document is created or an existing document is updated. This method is used to process raw data passed into the API endpoints, `create` and `update`.
+`Prepare` hooks are called before a new document is created or an existing document is updated. This method is used to process raw data passed into the API endpoints; available in `create` and `update` operations.
 
 ```ts
 userRouter.prepare({
@@ -283,50 +312,88 @@ userRouter.decorate('list', function (docObject, permissions, context) {
 });
 ```
 
+### Decorate All
+
+`Decorate All` hooks are called before response data is sent and after `decorate` middleware runs. This method is used to process and filter multiple document objects before sending the result; available in `list` operations only.
+
+```ts
+userRouter.decorateAll(function (docObjects, permissions) {
+  // add process logic
+  const processed = process(docObjects);
+  return processed;
+});
+```
+
 ## Workflow lifecycle
 
 #### List
 
 `List` operation executes hook methods in the following sequence:
 
-| Hook             | Description                                                        | Parameters                                                                                                  |
-| ---------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
-| `docPermissions` | called after Mongoose execute the query; it runs on each document. | <ol><li>Mongoose document</li><li>global permissions</li></ol>                                              |
-| `decorate`       | runs on each document object.                                      | <ol><li>plain document object</li><li>global permissions</li><li>context object: `docPermissions`</li></ol> |
-| `decorateAll`    | runs on set of document objects.                                   | <ol><li>plain document objects</li><li>global permissions</li></ol>                                         |
+| Hook             | Parameters                                                                                                  | Description                                                        |
+| ---------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `docPermissions` | <ol><li>Mongoose document</li><li>global permissions</li></ol>                                              | called after Mongoose execute the query; it runs on each document. |
+| `decorate`       | <ol><li>plain document object</li><li>global permissions</li><li>context object: `docPermissions`</li></ol> | runs on each document object.                                      |
+| `decorateAll`    | <ol><li>plain document objects</li><li>global permissions</li></ol>                                         | runs on set of document objects.                                   |
 
 #### Read
 
 `Read` operation executes hook methods in the following sequence:
 
-| Hook             | Description                              | Parameters                                                                                                  |
-| ---------------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `docPermissions` | called after Mongoose execute the query. | <ol><li>Mongoose document</li><li>global permissions</li></ol>                                              |
-| `decorate`       |                                          | <ol><li>plain document object</li><li>global permissions</li><li>context object: `docPermissions`</li></ol> |
+| Hook             | Parameters                                                                                                  | Description                              |
+| ---------------- | ----------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| `docPermissions` | <ol><li>Mongoose document</li><li>global permissions</li></ol>                                              | called after Mongoose execute the query. |
+| `decorate`       | <ol><li>plain document object</li><li>global permissions</li><li>context object: `docPermissions`</li></ol> |                                          |
 
 #### Update
 
 `Update` operation executes hook methods in the following sequence:
 
-| Hook             | Description                              | Parameters                                                                                                                                                                                 |
-| ---------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `docPermissions` | called after Mongoose execute the query. | <ol><li>Mongoose document</li><li>global permissions</li></ol>                                                                                                                             |
-| `validate`       |                                          | <ol><li>allowed object</li><li>global permissions</li><li>context object: `originalDoc`, `originalData`, `currentDoc`</li></ol>                                                            |
-| `prepare`        |                                          | <ol><li>allowed object</li><li>global permissions</li><li>context object: `originalDoc`, `originalData`, `currentDoc`</li></ol>                                                            |
-| `transform`      | called before changes saved.             | <ol><li>allowed object</li><li>global permissions</li><li>context object: `originalDoc`, `originalData`, `currentDoc`, `preparedData`, `modifiedPaths`</li></ol>                           |
-| `docPermissions` | called after changes saved.              | <ol><li>Mongoose document</li><li>global permissions</li><li>context object: `originalDoc`, `originalData`, `currentDoc`, `preparedData`, `modifiedPaths`</li></ol>                        |
-| `decorate`       |                                          | <ol><li>plain document object</li><li>global permissions</li><li>context object: `originalDoc`, `originalData`, `currentDoc`, `preparedData`, `modifiedPaths`, ``docPermissions`</li></ol> |
+| Hook             | Parameters                                                                                                                                                                                 | Description                              |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------- |
+| `docPermissions` | <ol><li>Mongoose document</li><li>global permissions</li></ol>                                                                                                                             | called after Mongoose execute the query. |
+| `validate`       | <ol><li>allowed object</li><li>global permissions</li><li>context object: `originalDoc`, `originalData`, `currentDoc`</li></ol>                                                            |                                          |
+| `prepare`        | <ol><li>allowed object</li><li>global permissions</li><li>context object: `originalDoc`, `originalData`, `currentDoc`</li></ol>                                                            |                                          |
+| `transform`      | <ol><li>allowed object</li><li>global permissions</li><li>context object: `originalDoc`, `originalData`, `currentDoc`, `preparedData`, `modifiedPaths`</li></ol>                           | called before changes saved.             |
+| `docPermissions` | <ol><li>Mongoose document</li><li>global permissions</li><li>context object: `originalDoc`, `originalData`, `currentDoc`, `preparedData`, `modifiedPaths`</li></ol>                        | called after changes saved.              |
+| `decorate`       | <ol><li>plain document object</li><li>global permissions</li><li>context object: `originalDoc`, `originalData`, `currentDoc`, `preparedData`, `modifiedPaths`, ``docPermissions`</li></ol> |                                          |
 
 #### Create
 
 `Create` operation executes hook methods in the following sequence:
 
-| Hook             | Description                      | Parameters                                                                                                                |
-| ---------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `validate`       |                                  | <ol><li>allowed object</li><li>global permissions</li><li>context object: `originalData`<li><ol>                          |
-| `prepare`        |                                  | <ol><li>allowed object</li><li>global permissions</li><li>context object: `originalData`</li></ol>                        |
-| `docPermissions` | called after a document created. | <ol><li>Mongoose document</li><li>global permissions</li><li>context object: `originalData`, `preparedData`</li></ol>     |
-| `decorate`       |                                  | <ol><li>plain document object</li><li>global permissions</li><li>context object: `originalData`, `preparedData`</li></ol> |
+| Hook             | Parameters                                                                                                                | Description                      |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
+| `validate`       | <ol><li>allowed object</li><li>global permissions</li><li>context object: `originalData`</li><ol>                         |                                  |
+| `prepare`        | <ol><li>allowed object</li><li>global permissions</li><li>context object: `originalData`</li></ol>                        |                                  |
+| `docPermissions` | <ol><li>Mongoose document</li><li>global permissions</li><li>context object: `originalData`, `preparedData`</li></ol>     | called after a document created. |
+| `decorate`       | <ol><li>plain document object</li><li>global permissions</li><li>context object: `originalData`, `preparedData`</li></ol> |                                  |
+
+## API Endpoints
+
+#### List (GET)
+
+#### List (POST)
+
+#### Create (POST)
+
+#### New (GET)
+
+#### Read (GET)
+
+#### Read (POST)
+
+#### Update (PUT)
+
+#### Delete (DELETE)
+
+#### Distinct (GET)
+
+#### Distinct (POST)
+
+#### Count (GET)
+
+#### Count (POST)
 
 ## Usage
 
@@ -334,6 +401,7 @@ userRouter.decorate('list', function (docObject, permissions, context) {
 import mongoose from 'mongoose';
 import express from 'express';
 import macl from 'express-mongoose-acl';
+import { Permissions } from 'express-mongoose-acl/permission';
 const router = express.Router();
 
 mongoose.model(
@@ -341,7 +409,7 @@ mongoose.model(
   new mongoose.Schema({
     name: { type: String },
     address: { type: String },
-    role: { type: String },
+    roles: { type: String },
     creditBalance: { type: Number },
     loginDate: { type: Date },
   }),
@@ -359,7 +427,7 @@ macl.set('globalPermissions', function (req) {
   };
 });
 
-const userRouter = macl.createRouter('User', { baseUrl: 'users' });
+const userRouter = macl.createRouter('User', { baseUrl: null });
 
 userRouter.routeGuard({
   list: true,
@@ -414,48 +482,48 @@ userRouter.docPermissions(function (docOrObject, permissions: Permissions) {
 });
 
 userRouter.prepare({
-  create: function (docObject, permissions, context) {
+  create: function (docObject, permissions: Permissions, context) {
     const { originalData } = context;
     // add create prepare function
     return docObject;
   },
-  update: function (docObject, permissions, context) {
+  update: function (docObject, permissions: Permissions, context) {
     const { originalDoc, originalData, currentDoc } = context;
     // add update prepare function
     return docObject;
   },
 });
 
-userRouter.transform(function (doc, permissions, context) {
+userRouter.transform(function (doc, permissions: Permissions, context) {
   const { originalDoc, originalData, currentDoc, preparedData, modifiedPaths } = context;
   // add transform function
   return doc;
 });
 
 userRouter.decorate({
-  list: function (docObject, permissions, context) {
+  list: function (docObject, permissions: Permissions, context) {
     const { docPermissions } = context;
     // add list decorator function
     return docObject;
   },
-  read: function (docObject, permissions, context) {
+  read: function (docObject, permissions: Permissions, context) {
     const { docPermissions } = context;
     // add read decorator function
     return docObject;
   },
-  create: function (docObject, permissions, context) {
+  create: function (docObject, permissions: Permissions, context) {
     const { originalData, preparedData, docPermissions } = context;
     // add create decorator function
     return docObject;
   },
-  update: function (docObject, permissions, context) {
+  update: function (docObject, permissions: Permissions, context) {
     const { originalDoc, originalData, currentDoc, preparedData, modifiedPaths, docPermissions } = context;
     // add update decorator function
     return docObject;
   },
 });
 
-userRouter.decorateAll(function (docObjects, permissions) {
+userRouter.decorateAll(function (docObjects, permissions: Permissions) {
   // add decorator-all function
   return docObjects;
 });
@@ -471,24 +539,26 @@ router.use('/api/users', userRouter.routes);
 
 Router options can be set passed to the instance constructor or to the each setter methods.
 
-### baseUrl
+- `baseUrl`
+- `listHardLimit`
+- `permissionSchema`: see [`Quick Start - Permission Schema`](#permission-schema)
+- `permissionField`
+- `permissionFields`
+- `docPermissions`: see [`Quick Start - Document Permissions`](#document-permissions)
+- `routeGuard`: see [`Quick Start - Route Guard`](#route-guard)
+- `baseQuery`: see [`Quick Start - Base Query`](#base-query)
+- `validate`: see [`Middleware - Validate`](#validate)
+- `prepare`: see [`Middleware - Prepare`](#prepare)
+- `transform`: see [`Middleware - Transform`](#transform)
+- `decorate`: see [`Middleware - Decorate`](#decorate)
+- `decorateAll`: see [`Middleware - Decorate All`](#decorate-all)
+- `identifier`: this option defines how `id param` is used to find the target document, defaults to `_id` field; there is more than one way to define the relation:
 
-### identifier
+      - `string`: Mongoose document field key
+      - `function`: Function returns a Mongoose query to find the target document.
 
-### permissionSchema
-
-### routeGuard
-
-### baseQuery
-
-### validate
-
-### prepare
-
-### transform
-
-### decorate
-
-### decorateAll
-
-### docPermissions
+```ts
+userRouter.identifier(function (id) {
+  return { $or: [{ _id: id }, { code: id }] };
+});
+```
