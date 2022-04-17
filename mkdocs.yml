@@ -46,6 +46,18 @@ theme:
   icon:
     logo: logo
 
+# Extensions
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - meta
+  - md_in_html
+  - toc:
+      permalink: true
+
 extra_javascript:
   - https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/highlight.min.js
   - javascripts/highlight.js
