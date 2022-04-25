@@ -29,6 +29,8 @@ function setOption(parentKey: string, optionKey: any, option?: any) {
   setModelOption(this.modelName, key, value);
 }
 
+const parseBooleanString = (str: string, defaultValue?: any) => (str ? str === 'true' : defaultValue);
+
 const defaultModelOptions = {
   listHardLimit: 1000,
   permissionField: '_permissions',
@@ -80,16 +82,16 @@ class ModelRouter {
       const allowed = await req._isAllowed(this.modelName, 'list');
       if (!allowed) throw new clientErrors.UnauthorizedError();
 
-      const { limit, page, include_permissions = 'true', include_count = 'false', lean = 'false' } = req.query;
+      const { limit, page, include_permissions, include_count, lean } = req.query;
 
       const model = req.macl(this.modelName);
       return model.list({
         limit,
         page,
         options: {
-          includePermissions: include_permissions !== 'false',
-          includeCount: include_count === 'true',
-          lean: lean === 'true',
+          includePermissions: parseBooleanString(include_permissions),
+          includeCount: parseBooleanString(include_count),
+          lean: parseBooleanString(lean),
         },
       });
     });
@@ -102,7 +104,7 @@ class ModelRouter {
       if (!allowed) throw new clientErrors.UnauthorizedError();
 
       let { query, select, sort, populate, limit, page, options = {} } = req.body;
-      const { includePermissions = true, includeCount = false, populateAccess = 'read', lean = false } = options;
+      const { includePermissions, includeCount, populateAccess, lean } = options;
 
       const model = req.macl(this.modelName);
       return model.list({
@@ -128,10 +130,10 @@ class ModelRouter {
       const allowed = await req._isAllowed(this.modelName, 'create');
       if (!allowed) throw new clientErrors.UnauthorizedError();
 
-      const { include_permissions = 'true' } = req.query;
+      const { include_permissions } = req.query;
 
       const model = req.macl(this.modelName);
-      const doc = await model.create(req.body, { includePermissions: include_permissions === 'true' });
+      const doc = await model.create(req.body, { includePermissions: parseBooleanString(include_permissions) });
 
       res.status(201).json(doc);
     });
@@ -157,13 +159,13 @@ class ModelRouter {
       if (!allowed) throw new clientErrors.UnauthorizedError();
 
       const id = req.params[this.idParam];
-      const { include_permissions = 'true', try_list = 'true', lean = 'false' } = req.query;
+      const { include_permissions, try_list, lean } = req.query;
       const model = req.macl(this.modelName);
       return model.read(id, {
         options: {
-          includePermissions: include_permissions !== 'false',
-          tryList: try_list === 'true',
-          lean: lean === 'true',
+          includePermissions: parseBooleanString(include_permissions),
+          tryList: parseBooleanString(try_list),
+          lean: parseBooleanString(lean),
         },
       });
     });
@@ -177,7 +179,7 @@ class ModelRouter {
 
       const id = req.params[this.idParam];
       let { select, populate, options = {} } = req.body;
-      const { includePermissions = true, tryList = true, populateAccess = 'read', lean = false } = options;
+      const { includePermissions, tryList, populateAccess, lean } = options;
 
       const model = req.macl(this.modelName);
       return model.read(id, {
@@ -195,10 +197,10 @@ class ModelRouter {
       if (!allowed) throw new clientErrors.UnauthorizedError();
 
       const id = req.params[this.idParam];
-      const { returning_all = 'true' } = req.query;
+      const { returning_all } = req.query;
 
       const model = req.macl(this.modelName);
-      return model.update(id, req.body, { returningAll: returning_all === 'true' });
+      return model.update(id, req.body, { returningAll: parseBooleanString(returning_all) });
     });
 
     ////////////
