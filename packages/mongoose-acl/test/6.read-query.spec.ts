@@ -61,7 +61,7 @@ describe('Read-Query User', () => {
     expect(response.body.orgs[0]).to.be.a('string');
   });
 
-  it('should return the unpopulated user orgs with read access', async () => {
+  it('should return the populated user orgs with read access', async () => {
     const response = await request(app)
       .post('/api/users/__query/lucy2')
       .set('user', 'john')
@@ -70,7 +70,8 @@ describe('Read-Query User', () => {
       .expect(200);
 
     expect(response.body.name).to.equal('lucy2');
-    expect(response.body.orgs.length).to.equal(0);
+    expect(response.body.orgs.length).to.equal(2);
+    expect(response.body.orgs[0]).to.be.a('object');
   });
 
   it('should return the populated user orgs with list access', async () => {
@@ -82,6 +83,7 @@ describe('Read-Query User', () => {
       .expect(200);
 
     expect(response.body.name).to.equal('lucy2');
+    expect(response.body.orgs.length).to.equal(2);
     expect(response.body.orgs[0]).to.be.a('object');
   });
 
