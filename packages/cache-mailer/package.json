@@ -34,15 +34,15 @@
     "node": ">= 6.0.0"
   },
   "dependencies": {
-    "html-to-text": "^7.0.0",
-    "nodemailer": "^6.5.0"
+    "html-to-text": "^8.2.0",
+    "nodemailer": "^6.7.5"
   },
   "devDependencies": {
-    "axios": "^0.24.0",
-    "ejs": "^3.1.6",
-    "express": "^4.17.1",
+    "axios": "^0.27.2",
+    "ejs": "^3.1.8",
+    "express": "^4.18.1",
     "handlebars": "^4.7.7",
-    "mocha": "^8.3.2"
+    "mocha": "^10.0.0"
   },
   "peerDependencies": {
     "ejs": "^3.1.6",
