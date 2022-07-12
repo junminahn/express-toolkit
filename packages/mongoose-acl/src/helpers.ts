@@ -7,6 +7,7 @@ import isPlainObject from 'lodash/isPlainObject';
 import reduce from 'lodash/reduce';
 import noop from 'lodash/noop';
 import forEach from 'lodash/forEach';
+import flattenDeep from 'lodash/flattenDeep';
 import { isSchema, isReference } from './lib';
 import { Projection } from './interfaces';
 
@@ -98,8 +99,8 @@ export async function iterateQuery(query: any, handler: Function) {
   });
 }
 
-export const normalizeSelect = (select: Projection | null) => {
-  if (Array.isArray(select)) return select.map((v) => v.trim());
+export const normalizeSelect = (select: Projection | null): string[] => {
+  if (Array.isArray(select)) return flattenDeep(select.map(normalizeSelect));
   if (isPlainObject(select)) {
     return reduce(
       select,
@@ -112,7 +113,7 @@ export const normalizeSelect = (select: Projection | null) => {
     );
   }
   if (isString(select)) return select.split(' ').map((v) => v.trim());
-  return null;
+  return [];
 };
 
 export class CustomError extends Error {

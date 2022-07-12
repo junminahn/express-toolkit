@@ -171,7 +171,7 @@ export async function genSelect(
   skipChecks = true,
   subPaths = [],
 ) {
-  targetFields = normalizeSelect(targetFields);
+  let normalizedSelect = normalizeSelect(targetFields);
   let fields = [];
 
   const permissionSchema = getModelOption(modelName, ['permissionSchema'].concat(subPaths).join('.'));
@@ -208,15 +208,15 @@ export async function genSelect(
     }
   }
 
-  if (targetFields?.length > 0) {
-    const excludeid = targetFields.includes('-_id');
-    const excludeall = targetFields.every((v) => v.startsWith('-'));
+  if (normalizedSelect.length > 0) {
+    const excludeid = normalizedSelect.includes('-_id');
+    const excludeall = normalizedSelect.every((v) => v.startsWith('-'));
     if (excludeall) {
-      targetFields = targetFields.map((v) => v.substring(1));
-      fields = difference(fields, targetFields);
+      normalizedSelect = normalizedSelect.map((v) => v.substring(1));
+      fields = difference(fields, normalizedSelect);
       if (excludeid) fields.push('-_id');
     } else {
-      fields = intersection(targetFields, fields.concat(excludeid ? '-_id' : '_id'));
+      fields = intersection(normalizedSelect, fields.concat(excludeid ? '-_id' : '_id'));
     }
   }
 

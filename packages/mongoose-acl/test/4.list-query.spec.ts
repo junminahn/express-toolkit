@@ -121,7 +121,7 @@ describe('List-Query Users', () => {
     expect(response.body[0].orgs).exist;
   });
 
-  it('should return the selected fields', async () => {
+  it('should return the selected fields - 1', async () => {
     const response = await request(app)
       .post('/api/users/__query')
       .set('user', 'admin')
@@ -132,6 +132,62 @@ describe('List-Query Users', () => {
     expect(response.body.length).to.equal(1);
     expect(response.body[0].name).to.equal('john');
     expect(response.body[0].role).not.exist;
+    expect(response.body[0].orgs).not.exist;
+  });
+
+  it('should return the selected fields - 2', async () => {
+    const response = await request(app)
+      .post('/api/users/__query')
+      .set('user', 'admin')
+      .send({ query: { name: 'john' }, select: 'name role' })
+      .expect('Content-Type', /json/)
+      .expect(200);
+
+    expect(response.body.length).to.equal(1);
+    expect(response.body[0].name).to.equal('john');
+    expect(response.body[0].role).to.equal('user');
+    expect(response.body[0].orgs).not.exist;
+  });
+
+  it('should return the selected fields - 3', async () => {
+    const response = await request(app)
+      .post('/api/users/__query')
+      .set('user', 'admin')
+      .send({ query: { name: 'john' }, select: ['name', 'role'] })
+      .expect('Content-Type', /json/)
+      .expect(200);
+
+    expect(response.body.length).to.equal(1);
+    expect(response.body[0].name).to.equal('john');
+    expect(response.body[0].role).to.equal('user');
+    expect(response.body[0].orgs).not.exist;
+  });
+
+  it('should return the selected fields - 4', async () => {
+    const response = await request(app)
+      .post('/api/users/__query')
+      .set('user', 'admin')
+      .send({ query: { name: 'john' }, select: { name: 1, role: 1 } })
+      .expect('Content-Type', /json/)
+      .expect(200);
+
+    expect(response.body.length).to.equal(1);
+    expect(response.body[0].name).to.equal('john');
+    expect(response.body[0].role).to.equal('user');
+    expect(response.body[0].orgs).not.exist;
+  });
+
+  it('should handle invalid select option', async () => {
+    const response = await request(app)
+      .post('/api/users/__query')
+      .set('user', 'admin')
+      .send({ query: { name: 'john' }, select: ['name role'] })
+      .expect('Content-Type', /json/)
+      .expect(200);
+
+    expect(response.body.length).to.equal(1);
+    expect(response.body[0].name).to.equal('john');
+    expect(response.body[0].role).to.equal('user');
     expect(response.body[0].orgs).not.exist;
   });
 
