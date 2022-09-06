@@ -20,7 +20,10 @@ JsonRouter.errorMessageProvider = function (error) {
 const pluralize = mongoose.pluralize();
 const clientErrors = JsonRouter.clientErrors;
 
-type setOptionType = (keyOrOption: any, option?: any) => void;
+type setOptionType = {
+  (option: any): void;
+  (key: string, option: any): void;
+};
 
 function setOption(parentKey: string, optionKey: any, option?: any) {
   const key = isUndefined(option) ? parentKey : `${parentKey}.${optionKey}`;
@@ -371,19 +374,94 @@ class ModelRouter {
     setModelOption(this.modelName, optionKey, option);
   }
 
-  listHardLimit: setOptionType = setOption.bind(this, 'listHardLimit');
-  permissionSchema: setOptionType = setOption.bind(this, 'permissionSchema');
-  permissionField: setOptionType = setOption.bind(this, 'permissionField');
-  permissionFields: setOptionType = setOption.bind(this, 'permissionFields');
-  docPermissions: setOptionType = setOption.bind(this, 'docPermissions');
-  routeGuard: setOptionType = setOption.bind(this, 'routeGuard');
-  baseQuery: setOptionType = setOption.bind(this, 'baseQuery');
-  decorate: setOptionType = setOption.bind(this, 'decorate');
-  decorateAll: setOptionType = setOption.bind(this, 'decorateAll');
-  prepare: setOptionType = setOption.bind(this, 'prepare');
-  transform: setOptionType = setOption.bind(this, 'transform');
-  identifier: setOptionType = setOption.bind(this, 'identifier');
-  defaults: setOptionType = setOption.bind(this, 'defaults');
+  /**
+   * The maximum limit of the number of documents returned from the `list` operation.
+   */
+  public listHardLimit: setOptionType = setOption.bind(this, 'listHardLimit');
+
+  /**
+   * The object schema to define the access control policy for each model field.
+   */
+  public permissionSchema: setOptionType = setOption.bind(this, 'permissionSchema');
+
+  /**
+   * The object field to store the document permissions.
+   */
+  public permissionField: setOptionType = setOption.bind(this, 'permissionField');
+
+  /**
+   * The essential model fields involved in generating document permissions.
+   */
+  public permissionFields: setOptionType = setOption.bind(this, 'permissionFields');
+
+  /**
+   * The function called in the process of generating document permissions.
+   */
+  public docPermissions: setOptionType = setOption.bind(this, 'docPermissions');
+
+  /**
+   * The access control policy for CRUDL endpoints.
+   * @operation `create`, `list`, `read`, `update`, `delete`
+   */
+  public routeGuard: setOptionType = setOption.bind(this, 'routeGuard');
+
+  /**
+   * The base query definitions applied in every query transaction.
+   * @operation `list`, `read`, `update`, `delete`
+   */
+  public baseQuery: setOptionType = setOption.bind(this, 'baseQuery');
+
+  /**
+   * Middleware
+   *
+   * The function called before a new/update document data is processed in `prepare` hooks. This method is used to validate `write data` and throw an error if not valid.
+   * @operation `create`, `update`
+   */
+  public validate: setOptionType = setOption.bind(this, 'validate');
+
+  /**
+   * Middleware
+   *
+   * The function called before a new document is created or an existing document is updated. This method is used to process raw data passed into the API endpoints.
+   * @operation `create`, `update`
+   */
+  public prepare: setOptionType = setOption.bind(this, 'prepare');
+
+  /**
+   * Middleware
+   *
+   * The function called before an updated document is saved.
+   * @operation `update`
+   */
+  public transform: setOptionType = setOption.bind(this, 'transform');
+
+  /**
+   * Middleware
+   *
+   * The function called before response data is sent. This method is used to process raw data to apply custom logic before sending the result.
+   * @operation `list`, `read`, `create`, `update`
+   */
+  public decorate: setOptionType = setOption.bind(this, 'decorate');
+
+  /**
+   * Middleware
+   *
+   * The function are called before response data is sent and after `decorate` middleware runs. This method is used to process and filter multiple document objects before sending the result.
+   * @operation `list`
+   */
+  public decorateAll: setOptionType = setOption.bind(this, 'decorateAll');
+
+  /**
+   * The document selector definition with the `id` param.
+   * @option `string` | `Function`
+   * @operation `read`, `update`, `delete`
+   */
+  public identifier: setOptionType = setOption.bind(this, 'identifier');
+
+  /**
+   * The default values used when missing in the operations.
+   */
+  public defaults: setOptionType = setOption.bind(this, 'defaults');
 
   get options() {
     return getModelOptions(this.modelName);

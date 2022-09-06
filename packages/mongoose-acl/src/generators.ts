@@ -107,7 +107,7 @@ function getDocPermissions(modelName, doc) {
   return docPermissions;
 }
 
-function setModelPermission(doc, path, value) {
+function setDocPermissions(doc, path, value) {
   if (isDocument(doc)) {
     set(doc._doc, path, value);
   } else if (isPlainObject(doc)) {
@@ -279,9 +279,9 @@ export async function permit(modelName: string, doc: any, access: string, contex
 
   if (isFunction(permit)) {
     const permissions = this[PERMISSIONS];
-    setModelPermission(doc, docPermissionField, await permit.call(this, doc, permissions, context));
+    setDocPermissions(doc, docPermissionField, await permit.call(this, doc, permissions, context));
   } else {
-    setModelPermission(doc, docPermissionField, {});
+    setDocPermissions(doc, docPermissionField, {});
   }
 
   const allowedFields = await this._genAllowedFields(modelName, doc, 'update');
@@ -290,7 +290,7 @@ export async function permit(modelName: string, doc: any, access: string, contex
 
   // TODO: make it flexible structure
   forEach(allowedFields, (field) => {
-    setModelPermission(doc, `${docPermissionField}.edit.${field}`, true);
+    setDocPermissions(doc, `${docPermissionField}.edit.${field}`, true);
   });
 
   return doc;
