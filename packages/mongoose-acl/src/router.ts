@@ -37,7 +37,7 @@ const parseBooleanString = (str: string, defaultValue?: any) => (str ? str === '
 const defaultModelOptions = {
   listHardLimit: 1000,
   permissionField: '_permissions',
-  permissionFields: [],
+  mandatoryFields: [],
   identifier: '_id',
 };
 
@@ -392,7 +392,7 @@ class ModelRouter {
   /**
    * The essential model fields involved in generating document permissions.
    */
-  public permissionFields: setOptionType = setOption.bind(this, 'permissionFields');
+  public mandatoryFields: setOptionType = setOption.bind(this, 'mandatoryFields');
 
   /**
    * The function called in the process of generating document permissions.

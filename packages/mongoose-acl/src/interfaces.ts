@@ -78,7 +78,7 @@ export interface ModelRouterProps {
   permissionSchema?: PermissionSchema;
   permissionSchemaKeys?: string[];
   permissionField?: string;
-  permissionFields?: string[];
+  mandatoryFields?: string[];
   docPermissions?: DocPermissions | Function;
   routeGuard?: Validation | Access;
   baseQuery?: any;

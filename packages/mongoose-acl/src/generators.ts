@@ -220,8 +220,8 @@ export async function genSelect(
     }
   }
 
-  const permissionFields = subPaths.length > 0 ? [] : getModelOption(modelName, 'permissionFields', []);
-  return fields.concat(permissionFields);
+  const mandatoryFields = subPaths.length > 0 ? [] : getModelOption(modelName, 'mandatoryFields', []);
+  return fields.concat(mandatoryFields);
 }
 
 export async function genPopulate(modelName: string, access: string = 'read', _populate: any = null) {
