@@ -32,6 +32,9 @@ const hit = (url, status, value, done) =>
       if (status === 204) {
         expect(response.headers['content-type']).to.be.undefined;
         expect(response.body).to.be.empty;
+      } else if (status === 205) {
+        expect(response.headers['content-type']).to.have.string('/json');
+        expect(response.body).to.be.empty;
       } else {
         expect(response.headers['content-type']).to.have.string('/json');
         expect(response.body).to.equal(value);
