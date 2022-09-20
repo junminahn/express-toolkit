@@ -273,16 +273,22 @@ export async function transform(modelName: string, doc: any, access: string, con
   return callMiddleware(this, transform, doc, permissions, context);
 }
 
-export async function permit(modelName: string, doc: any, access: string, context: MiddlewareContext = {}) {
+export async function genDocPermissions(modelName: string, doc: any, access: string, context: MiddlewareContext = {}) {
   const permit = getModelOption(modelName, `docPermissions.${access}`, null);
-  const docPermissionField = getModelOption(modelName, 'permissionField', '_permissions');
+  let docPermissions = {};
 
   if (isFunction(permit)) {
     const permissions = this[PERMISSIONS];
-    setDocPermissions(doc, docPermissionField, await permit.call(this, doc, permissions, context));
-  } else {
-    setDocPermissions(doc, docPermissionField, {});
+    docPermissions = await permit.call(this, doc, permissions, context);
   }
+
+  return docPermissions;
+}
+
+export async function permit(modelName: string, doc: any, access: string, context: MiddlewareContext = {}) {
+  const docPermissionField = getModelOption(modelName, 'permissionField', '_permissions');
+  const docPermissions = await this._genDocPermissions(modelName, doc, access, context);
+  setDocPermissions(doc, docPermissionField, docPermissions);
 
   const allowedFields = await this._genAllowedFields(modelName, doc, 'update');
   // TODO: do we need falsy fields as well?
@@ -362,6 +368,7 @@ export async function setGenerators(req, res, next) {
   req._genSelect = genSelect.bind(req);
   req._pickAllowedFields = pickAllowedFields.bind(req);
   req._genPopulate = genPopulate.bind(req);
+  req._genDocPermissions = genDocPermissions.bind(req);
   req._validate = validate.bind(req);
   req._prepare = prepare.bind(req);
   req._transform = transform.bind(req);
