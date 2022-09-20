@@ -74,7 +74,7 @@ class Controller {
       options = this.defaults.findOne?.options || {},
     }: FindOneProps = {},
   ) {
-    const { access = 'read', populateAccess, lean = false, idQuery: _idQuery } = options;
+    const { includePermissions = true, access = 'read', populateAccess, lean = false, idQuery: _idQuery } = options;
     const idQuery = _idQuery || (await this.req._genIDQuery(this.modelName, id));
 
     let [query, select, populate] = await Promise.all([
@@ -85,7 +85,11 @@ class Controller {
 
     if (query === false) return null;
 
-    return this.model.findOne({ query, select, populate, lean });
+    let doc = await this.model.findOne({ query, select, populate, lean });
+    if (!doc) return null;
+
+    if (includePermissions) doc = await this.req._permit(this.modelName, doc, access);
+    return doc;
   }
 
   async list({
@@ -209,7 +213,7 @@ class Controller {
     let doc = await this.findOne(id, {
       select,
       populate,
-      options: { access, populateAccess, lean, idQuery },
+      options: { includePermissions, access, populateAccess, lean, idQuery },
     });
 
     // if not found, try to get the doc with 'list' access
@@ -219,13 +223,12 @@ class Controller {
       doc = await this.findOne(id, {
         select,
         populate,
-        options: { access, populateAccess, lean, idQuery },
+        options: { includePermissions, access, populateAccess, lean, idQuery },
       });
     }
 
     if (!doc) return null;
 
-    if (includePermissions) doc = await this.req._permit(this.modelName, doc, access);
     doc = await this.req._pickAllowedFields(this.modelName, doc, access, ['_id', this.options.permissionField]);
     doc = await this.req._decorate(this.modelName, doc, access);
 

@@ -45,6 +45,7 @@ export interface FindOneOptionProps {
   access?: string;
   populateAccess?: string;
   lean?: boolean;
+  includePermissions?: boolean;
   idQuery?: any;
 }
 
