@@ -22,6 +22,8 @@ import {
   DistinctOptionProps,
   Defaults,
   Populate,
+  FindOneOptionProps,
+  FindOneProps,
 } from './interfaces';
 
 const filterChildren = (children, query) => {
@@ -62,6 +64,28 @@ class Controller {
     this.model = new Model(modelName);
     this.options = getModelOptions(modelName);
     this.defaults = this.options.defaults || {};
+  }
+
+  async findOne(
+    id,
+    {
+      select: _select = this.defaults.findOne?.select,
+      populate: _populate = this.defaults.findOne?.populate,
+      options = this.defaults.findOne?.options || {},
+    }: FindOneProps = {},
+  ) {
+    const { access = 'read', populateAccess, lean = false, idQuery: _idQuery } = options;
+    const idQuery = _idQuery || (await this.req._genIDQuery(this.modelName, id));
+
+    let [query, select, populate] = await Promise.all([
+      this.req._genQuery(this.modelName, access, idQuery),
+      this.req._genSelect(this.modelName, access, _select),
+      this.req._genPopulate(this.modelName, populateAccess || access, _populate),
+    ]);
+
+    if (query === false) return null;
+
+    return this.model.findOne({ query, select, populate, lean });
   }
 
   async list({
@@ -173,8 +197,8 @@ class Controller {
   async read(
     id,
     {
-      select: _select = this.defaults.read?.select,
-      populate: _populate = this.defaults.read?.populate,
+      select = this.defaults.read?.select,
+      populate = this.defaults.read?.populate,
       options = this.defaults.read?.options || {},
     }: ReadProps = {},
   ) {
@@ -182,27 +206,21 @@ class Controller {
     const { includePermissions = true, tryList = true, populateAccess, lean = false } = options;
     const idQuery = await this.req._genIDQuery(this.modelName, id);
 
-    let [query, select, populate] = await Promise.all([
-      this.req._genQuery(this.modelName, access, idQuery),
-      this.req._genSelect(this.modelName, access, _select),
-      this.req._genPopulate(this.modelName, populateAccess || access, _populate),
-    ]);
-
-    if (query === false) return null;
-
-    let doc = await this.model.findOne({ query, select, populate, lean });
+    let doc = await this.findOne(id, {
+      select,
+      populate,
+      options: { access, populateAccess, lean, idQuery },
+    });
 
     // if not found, try to get the doc with 'list' access
     if (!doc && tryList) {
       access = 'list';
 
-      [query, select, populate] = await Promise.all([
-        this.req._genQuery(this.modelName, access, idQuery),
-        this.req._genSelect(this.modelName, access, _select),
-        this.req._genPopulate(this.modelName, populateAccess || access, _populate),
-      ]);
-
-      doc = await this.model.findOne({ query, select, populate, lean });
+      doc = await this.findOne(id, {
+        select,
+        populate,
+        options: { access, populateAccess, lean, idQuery },
+      });
     }
 
     if (!doc) return null;

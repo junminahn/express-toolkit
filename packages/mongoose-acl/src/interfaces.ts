@@ -41,11 +41,24 @@ export interface ListOptionProps {
   lean?: boolean;
 }
 
-export interface ReadOptionProps {
-  includePermissions?: boolean;
-  tryList?: boolean;
+export interface FindOneOptionProps {
+  access?: string;
   populateAccess?: string;
   lean?: boolean;
+  idQuery?: any;
+}
+
+export interface FindOneProps {
+  select?: string[] | string | null | undefined;
+  populate?: Populate[] | string | null | undefined;
+  options?: FindOneOptionProps;
+}
+
+export interface ReadOptionProps {
+  populateAccess?: string;
+  lean?: boolean;
+  includePermissions?: boolean;
+  tryList?: boolean;
 }
 
 export interface ListProps {
@@ -70,6 +83,7 @@ export interface Defaults {
   read?: ReadProps;
   update?: UpdateOptionProps;
   distinct?: DistinctOptionProps;
+  findOne?: FindOneProps;
 }
 
 export interface ModelRouterProps {
