@@ -72,15 +72,17 @@ class Controller {
       select: _select = this.defaults.findOne?.select,
       populate: _populate = this.defaults.findOne?.populate,
       options = this.defaults.findOne?.options || {},
+      overrides = {},
     }: FindOneProps = {},
   ) {
-    const { includePermissions = true, access = 'read', populateAccess, lean = false, idQuery: _idQuery } = options;
-    const idQuery = _idQuery || (await this.req._genIDQuery(this.modelName, id));
+    const { includePermissions = true, access = 'read', populateAccess, lean = false } = options;
+    const { query: __query, select: __select, populate: __populate, idQuery: __idQuery } = overrides;
+    const idQuery = __idQuery || (await this.req._genIDQuery(this.modelName, id));
 
     let [query, select, populate] = await Promise.all([
-      this.req._genQuery(this.modelName, access, idQuery),
-      this.req._genSelect(this.modelName, access, _select),
-      this.req._genPopulate(this.modelName, populateAccess || access, _populate),
+      __query || this.req._genQuery(this.modelName, access, idQuery),
+      __select || this.req._genSelect(this.modelName, access, _select),
+      __populate || this.req._genPopulate(this.modelName, populateAccess || access, _populate),
     ]);
 
     if (query === false) return null;
@@ -213,7 +215,8 @@ class Controller {
     let doc = await this.findOne(id, {
       select,
       populate,
-      options: { includePermissions, access, populateAccess, lean, idQuery },
+      options: { includePermissions, access, populateAccess, lean },
+      overrides: { idQuery },
     });
 
     // if not found, try to get the doc with 'list' access
@@ -223,7 +226,8 @@ class Controller {
       doc = await this.findOne(id, {
         select,
         populate,
-        options: { includePermissions, access, populateAccess, lean, idQuery },
+        options: { includePermissions, access, populateAccess, lean },
+        overrides: { idQuery },
       });
     }
 

@@ -46,13 +46,19 @@ export interface FindOneOptionProps {
   populateAccess?: string;
   lean?: boolean;
   includePermissions?: boolean;
-  idQuery?: any;
 }
 
+export interface OverridesProps {
+  query?: any;
+  select?: any;
+  populate?: any;
+  idQuery?: any;
+}
 export interface FindOneProps {
   select?: string[] | string | null | undefined;
   populate?: Populate[] | string | null | undefined;
   options?: FindOneOptionProps;
+  overrides?: OverridesProps;
 }
 
 export interface ReadOptionProps {
