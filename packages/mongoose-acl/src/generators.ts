@@ -374,7 +374,7 @@ export async function setGenerators(req, res, next) {
   req.macl = macl.bind(req);
 
   await req._setPermissions();
-  req[PERMISSIONS] = req._getPermissions();
+  req[PERMISSIONS] = req.permissions = req._getPermissions();
   req[PERMISSION_KEYS] = req[PERMISSIONS].$_permissionKeys;
   req[MIDDLEWARE] = true;
   next();

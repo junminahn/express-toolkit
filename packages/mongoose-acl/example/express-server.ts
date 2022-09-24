@@ -14,6 +14,8 @@ import macl from '../src';
 
 console.log(!!models);
 
+macl.setGlobalOption('permissionField', '_permissions');
+
 macl.set('globalPermissions', async function (req) {
   const User = mongoose.model('User');
   const userName = req.headers.user;
