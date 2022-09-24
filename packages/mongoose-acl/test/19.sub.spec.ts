@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import { expect } from 'chai';
 import 'mocha';
 
-import { app } from './0.setup.spec';
+import { app } from './00.setup.spec';
 
 describe('Sub-Document User', () => {
   it('should return allowed fields for status history list route', async () => {

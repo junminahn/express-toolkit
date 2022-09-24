@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import { expect } from 'chai';
 import 'mocha';
 
-import { app } from './0.setup.spec';
+import { app } from './00.setup.spec';
 
 describe('List-Query Users', () => {
   it('should list all users for admin', async () => {

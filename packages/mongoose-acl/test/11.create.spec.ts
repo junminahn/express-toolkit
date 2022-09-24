@@ -2,7 +2,7 @@ import request from 'supertest';
 import { expect } from 'chai';
 import 'mocha';
 
-import { app } from './0.setup.spec';
+import { app } from './00.setup.spec';
 
 describe('Create Users', () => {
   it('should create an user `john` by admin', async () => {

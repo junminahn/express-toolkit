@@ -18,7 +18,7 @@ import { getGlobalOption, getModelOption, getModelRef } from './options';
 import { Populate, Projection, MiddlewareContext } from './interfaces';
 import Permission, { Permissions } from './permission';
 import Controller from './controller';
-import { normalizeSelect } from './helpers';
+import { normalizeSelect, arrToObj } from './helpers';
 import { isDocument } from './lib';
 
 const MIDDLEWARE = Symbol('middleware');
@@ -329,7 +329,10 @@ export async function setPermissions() {
 
   const globalPermissions = getGlobalOption('globalPermissions');
   if (isFunction(globalPermissions)) {
-    this[permissionField] = await globalPermissions.call(this, this);
+    const gp = await globalPermissions.call(this, this);
+    if (isPlainObject(gp)) this[permissionField] = gp;
+    else if (isArray(gp)) this[permissionField] = arrToObj(gp);
+    else if (isString(gp)) this[permissionField] = { [gp]: true };
   }
 }
 

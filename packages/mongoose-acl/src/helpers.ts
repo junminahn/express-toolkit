@@ -116,6 +116,14 @@ export const normalizeSelect = (select: Projection | null): string[] => {
   return [];
 };
 
+export const arrToObj = (arr: string[]): any => {
+  const obj = {};
+  for (let x = 0; x < arr.length; x++) {
+    obj[arr[x]] = true;
+  }
+  return obj;
+};
+
 export class CustomError extends Error {
   constructor({ statusCode = 422, message = 'Unprocessable Entity', errors = [] } = {}) {
     super(message);

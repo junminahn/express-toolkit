@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import { expect } from 'chai';
 import 'mocha';
 
-import { app } from './0.setup.spec';
+import { app } from './00.setup.spec';
 
 describe('Update Users', () => {
   it('should update an user `john` by admin', async () => {
