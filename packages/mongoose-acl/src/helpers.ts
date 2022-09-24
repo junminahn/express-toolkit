@@ -124,6 +124,23 @@ export const arrToObj = (arr: string[]): any => {
   return obj;
 };
 
+export const createValidator = (fn: (key) => boolean) => {
+  const stringHandler = (key) =>
+    key
+      .trim()
+      .split(' ')
+      .every((v) => fn(v));
+
+  const arrayHandler = (arr) =>
+    arr.some((item) => {
+      if (isString(item)) return stringHandler(item);
+      else if (isArray(item)) return arrayHandler(item);
+      else return false;
+    });
+
+  return [stringHandler, arrayHandler];
+};
+
 export class CustomError extends Error {
   constructor({ statusCode = 422, message = 'Unprocessable Entity', errors = [] } = {}) {
     super(message);

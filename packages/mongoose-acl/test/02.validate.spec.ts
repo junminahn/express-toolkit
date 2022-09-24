@@ -105,4 +105,28 @@ describe('Model Option - validate', () => {
 
     expect(response.body.name).to.equal('user-validate3');
   });
+
+  it('should pass the route validation', async () => {
+    const response = await request(app)
+      .get('/api/admin-route')
+      .set('user', 'admin')
+      .expect('Content-Type', /json/)
+      .expect(200);
+
+    expect(response.body).to.equal(true);
+  });
+
+  it('should pass the route validation2', async () => {
+    const response = await request(app)
+      .get('/api/admin-route2')
+      .set('user', 'admin')
+      .expect('Content-Type', /json/)
+      .expect(200);
+
+    expect(response.body).to.equal(true);
+  });
+
+  it('should pass the route validation', async () => {
+    const response = await request(app).get('/api/admin-route').set('user', 'nobody').expect(500);
+  });
 });

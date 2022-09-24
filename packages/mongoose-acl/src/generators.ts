@@ -18,12 +18,12 @@ import { getGlobalOption, getModelOption, getModelRef } from './options';
 import { Populate, Projection, MiddlewareContext } from './interfaces';
 import Permission, { Permissions } from './permission';
 import Controller from './controller';
-import { normalizeSelect, arrToObj } from './helpers';
+import { normalizeSelect, arrToObj, createValidator } from './helpers';
 import { isDocument } from './lib';
 
 const MIDDLEWARE = Symbol('middleware');
-const PERMISSIONS = Symbol('permissions');
-const PERMISSION_KEYS = Symbol('permission-keys');
+export const PERMISSIONS = Symbol('permissions');
+export const PERMISSION_KEYS = Symbol('permission-keys');
 
 const callMiddleware = async (
   req: any,
@@ -40,23 +40,6 @@ const callMiddleware = async (
   }
 
   return doc;
-};
-
-const createValidator = (fn: (key) => boolean) => {
-  const stringHandler = (key) =>
-    key
-      .trim()
-      .split(' ')
-      .every((v) => fn(v));
-
-  const arrayHandler = (arr) =>
-    arr.some((item) => {
-      if (isString(item)) return stringHandler(item);
-      else if (isArray(item)) return arrayHandler(item);
-      else return false;
-    });
-
-  return [stringHandler, arrayHandler];
 };
 
 export async function genIDQuery(modelName: string, id: string) {
