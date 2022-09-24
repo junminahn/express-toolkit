@@ -11,7 +11,7 @@ import { Permissions } from '../../src/permission';
 // docPermissions,
 // routeGuard: true,
 
-const userRouter = macl.createRouter('User', {
+export const userRouter = macl.createRouter('User', {
   baseUrl: null,
   permissionSchema: {
     name: { list: true, read: true, update: ['edit.name', 'edit.dummy'], create: true },
@@ -85,9 +85,6 @@ const userRouter = macl.createRouter('User', {
         },
       },
     },
-  },
-  validate: function () {
-    return [];
   },
   decorate: {
     default: [

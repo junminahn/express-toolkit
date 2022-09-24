@@ -3,6 +3,7 @@ import pick from 'lodash/pick';
 import isNil from 'lodash/isNil';
 import isArray from 'lodash/isArray';
 import isPlainObject from 'lodash/isPlainObject';
+import isBoolean from 'lodash/isBoolean';
 import isString from 'lodash/isString';
 import isMatch from 'lodash/isMatch';
 import filter from 'lodash/filter';
@@ -173,8 +174,13 @@ class Controller {
         const allowedFields = await this.req._genAllowedFields(this.modelName, item, 'create');
         const allowedData = pick(item, allowedFields);
 
-        const errors = await this.req._validate(this.modelName, allowedData, 'create', context);
-        if (errors?.length > 0) throw new CustomError({ message: 'validation failed', errors });
+        const validated = await this.req._validate(this.modelName, allowedData, 'create', context);
+        if (isBoolean(validated)) {
+          if (!validated) throw new CustomError({ statusCode: 400, message: 'validation failed' });
+        } else if (isArray(validated)) {
+          if (validated.length > 0)
+            throw new CustomError({ statusCode: 400, message: 'validation failed', errors: validated });
+        }
 
         const preparedData = await this.req._prepare(this.modelName, allowedData, 'create', context);
 
@@ -259,8 +265,13 @@ class Controller {
     const allowedFields = await this.req._genAllowedFields(this.modelName, doc, 'update');
     const allowedData = pick(data, allowedFields);
 
-    const errors = await this.req._validate(this.modelName, allowedData, 'update', context);
-    if (errors?.length > 0) throw new CustomError({ message: 'validation failed', errors });
+    const validated = await this.req._validate(this.modelName, allowedData, 'update', context);
+    if (isBoolean(validated)) {
+      if (!validated) throw new CustomError({ statusCode: 400, message: 'validation failed' });
+    } else if (isArray(validated)) {
+      if (validated.length > 0)
+        throw new CustomError({ statusCode: 400, message: 'validation failed', errors: validated });
+    }
 
     const prepared = await this.req._prepare(this.modelName, allowedData, 'update', context);
 

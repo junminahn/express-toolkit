@@ -1,7 +1,7 @@
 import macl from '../../src';
 import { Permissions } from '../../src/permission';
 
-const orgRouter = macl.createRouter('Org', {
+export const orgRouter = macl.createRouter('Org', {
   baseUrl: null,
   permissionSchema: { name: { list: true, read: true, create: true } },
   docPermissions: () => {

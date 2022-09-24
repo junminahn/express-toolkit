@@ -257,8 +257,15 @@ export async function genPopulate(modelName: string, access: string = 'read', _p
 
 export async function validate(modelName: string, allowedData: any, access: string, context: MiddlewareContext = {}) {
   const validate = getModelOption(modelName, `validate.${access}`, null);
-  const permissions = this[PERMISSIONS];
-  return isFunction(validate) ? (validate.call(this, allowedData, permissions, context) as boolean | any[]) : false;
+
+  if (isFunction(validate)) {
+    const permissions = this[PERMISSIONS];
+    return validate.call(this, allowedData, permissions, context) as boolean | any[];
+  } else if (isBoolean(validate) || isArray(validate)) {
+    return validate;
+  } else {
+    return true;
+  }
 }
 
 export async function prepare(modelName: string, allowedData: any, access: string, context: MiddlewareContext = {}) {
