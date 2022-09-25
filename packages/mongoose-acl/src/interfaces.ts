@@ -1,4 +1,4 @@
-type Validation = boolean | string | string[] | Function;
+export type Validation = boolean | string | string[] | Function;
 
 interface Access {
   list?: Validation;
@@ -93,6 +93,11 @@ export interface Defaults {
   findOne?: FindOneProps;
 }
 
+export interface RootRouterProps {
+  baseUrl: string | null | undefined | false;
+  routeGuard?: Validation;
+}
+
 export interface ModelRouterProps {
   baseUrl: string | null | undefined | false;
   listHardLimit?: number;
@@ -141,4 +146,10 @@ export interface MiddlewareContext {
   preparedData?: keyValue;
   modifiedPaths?: string[];
   docPermissions?: keyValue;
+}
+
+export interface RootQueryEntry {
+  modelName: string;
+  operation: string;
+  arguments: any[];
 }

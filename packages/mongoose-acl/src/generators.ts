@@ -15,7 +15,7 @@ import compact from 'lodash/compact';
 import intersection from 'lodash/intersection';
 import difference from 'lodash/difference';
 import { getGlobalOption, getModelOption, getModelRef } from './options';
-import { Populate, Projection, MiddlewareContext } from './interfaces';
+import { Populate, Projection, MiddlewareContext, Validation } from './interfaces';
 import Permission, { Permissions } from './permission';
 import Controller from './controller';
 import { normalizeSelect, arrToObj, createValidator } from './helpers';
@@ -326,8 +326,7 @@ export async function setPermissions() {
   }
 }
 
-export async function isAllowed(modelName, access) {
-  const routeGuard = getModelOption(modelName, `routeGuard.${access}`);
+export async function canActivate(routeGuard: Validation) {
   let allowed = false;
 
   const permissions = this[PERMISSIONS];
@@ -345,6 +344,11 @@ export async function isAllowed(modelName, access) {
   }
 
   return allowed;
+}
+
+export async function isAllowed(modelName, access) {
+  const routeGuard = getModelOption(modelName, `routeGuard.${access}`);
+  return this._canActivate(routeGuard);
 }
 
 export function macl(modelName: string) {
@@ -370,6 +374,7 @@ export async function setGenerators(req, res, next) {
   req._decorateAll = decorateAll.bind(req);
   req._getPermissions = getPermissions.bind(req);
   req._setPermissions = setPermissions.bind(req);
+  req._canActivate = canActivate.bind(req);
   req._isAllowed = isAllowed.bind(req);
   req.macl = macl.bind(req);
 

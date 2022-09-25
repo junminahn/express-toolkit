@@ -1,17 +1,23 @@
 import { Request, Response, NextFunction } from 'express';
 import isNil from 'lodash/isNil';
+import isUndefined from 'lodash/isUndefined';
 import middleware from './middleware';
-import ModelRouter from './router';
+import { RootRouter, ModelRouter } from './router';
 import { setGlobalOption, setGlobalOptions, getGlobalOption, GlobalOptions } from './options';
-import { ModelRouterProps } from './interfaces';
+import { RootRouterProps, ModelRouterProps } from './interfaces';
 
 type Middleware = () => (req: Request, res: Response, next: NextFunction) => Promise<void>;
 interface ModelRouterConstructor {
   new (modelName: string, options: ModelRouterProps): ModelRouter;
 }
 
+type CreateRouter = {
+  (modelName: string, options: ModelRouterProps): ModelRouter;
+  (options: RootRouterProps): RootRouter;
+};
+
 interface MACL {
-  createRouter: (modelName: string, options: ModelRouterProps) => ModelRouter;
+  createRouter: CreateRouter;
   set: (keyOrOptions: string | GlobalOptions, value?: any) => void;
   setGlobalOption: (optionKey: string, value: any) => void;
   setGlobalOptions: (options: GlobalOptions) => void;
@@ -20,9 +26,11 @@ interface MACL {
 }
 
 const macl = middleware as Middleware & MACL;
-macl.createRouter = function (modelName: string, options: ModelRouterProps) {
-  return new ModelRouter(modelName, options);
-};
+macl.createRouter = function (modelName: string | RootRouterProps, options: ModelRouterProps | undefined) {
+  return isUndefined(options)
+    ? new RootRouter(modelName as RootRouterProps)
+    : new ModelRouter(modelName as string, options);
+} as CreateRouter;
 
 macl.set = (keyOrOptions, value) =>
   isNil(value) ? setGlobalOptions(keyOrOptions as GlobalOptions) : setGlobalOption(keyOrOptions as string, value);

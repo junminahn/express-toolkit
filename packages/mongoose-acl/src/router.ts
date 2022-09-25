@@ -10,7 +10,8 @@ import Model from './model';
 
 import { setGenerators } from './generators';
 import { getGlobalOption, setModelOptions, setModelOption, getModelOptions, getModelSub } from './options';
-import { ModelRouterProps, MiddlewareContext } from './interfaces';
+import { RootRouterProps, ModelRouterProps, Validation, RootQueryEntry } from './interfaces';
+import { isArray } from 'lodash';
 
 JsonRouter.errorMessageProvider = function (error) {
   console.error(error);
@@ -41,7 +42,7 @@ const defaultModelOptions = {
   identifier: '_id',
 };
 
-class ModelRouter {
+export class ModelRouter {
   modelName: string;
   router: JsonRouter;
   model: Model;
@@ -472,4 +473,40 @@ class ModelRouter {
   }
 }
 
-export default ModelRouter;
+export class RootRouter {
+  router: JsonRouter;
+  basename: string;
+  routeGuard: Validation;
+
+  constructor(options: RootRouterProps = { baseUrl: '', routeGuard: true }) {
+    const { baseUrl, routeGuard } = options;
+
+    this.router = new JsonRouter();
+    this.basename = baseUrl || '';
+    this.routeGuard = routeGuard;
+    this.setRoutes();
+  }
+
+  private setRoutes() {
+    this.router.post(`${this.basename}/__query`, setGenerators, async (req, res) => {
+      const allowed = await req._canActivate(this.routeGuard);
+      if (!allowed) throw new clientErrors.UnauthorizedError();
+
+      const items = req.body || [];
+      return Promise.all(
+        items.map((item: RootQueryEntry) => {
+          if (!['list', 'create', 'empty', 'read', 'update', 'delete', 'distinct', 'count'].includes(item.operation))
+            return null;
+
+          const model = req.macl(item.modelName);
+          const op = model[item.operation].bind(model);
+          return isArray(item.arguments) ? op(...item.arguments) : op(item.arguments);
+        }),
+      );
+    });
+  }
+
+  get routes() {
+    return this.router.original;
+  }
+}
