@@ -7,12 +7,12 @@ import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import _ from 'lodash';
 import db from './db';
-import models from './models';
+import loadModels from './models';
 import routes from './routes';
 import { COOKIE_SESSION_NAME, COOKIE_SESSION_SECRET } from './config';
 import macl from '../src';
 
-console.log(!!models);
+console.log(!!loadModels());
 
 macl.setGlobalOption('permissionField', '_permissions');
 

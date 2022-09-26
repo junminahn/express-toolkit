@@ -5,18 +5,6 @@ import reduce from 'lodash/reduce';
 import { buildRefs, buildSubPaths } from './helpers';
 import { ModelRouterProps } from './interfaces';
 
-const modelRefs = {};
-const modelSubs = {};
-const modelNames = Object.keys(mongoose.models);
-modelNames.forEach((modelName) => {
-  // @ts-ignore
-  const references = buildRefs(mongoose.models[modelName].schema.tree);
-  // @ts-ignore
-  const subPaths = buildSubPaths(mongoose.models[modelName].schema.tree);
-  modelRefs[modelName] = references;
-  modelSubs[modelName] = subPaths;
-});
-
 export interface GlobalOptions {
   permissionField?: string;
   idParam?: string;
@@ -79,6 +67,3 @@ export const getModelOption = (modelName: string, optionKey: string, defaultValu
   if (option === undefined) option = get(modelOptions, `${modelName}.${parentKey}`, defaultValue);
   return option;
 };
-
-export const getModelRef = (modelName: string, refPath: string) => get(modelRefs, `${modelName}.${refPath}`, null);
-export const getModelSub = (modelName: string) => get(modelSubs, modelName, []);

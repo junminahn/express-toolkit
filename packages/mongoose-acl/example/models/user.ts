@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { permissionsPlugin } from '../../src/plugins';
 
 const DocumentSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -19,5 +20,7 @@ const UserSchema = new mongoose.Schema({
   orgs: [{ type: 'ObjectId', ref: 'Org' }],
   public: { type: Boolean, default: false },
 });
+
+UserSchema.plugin(permissionsPlugin, { modelName: 'User' });
 
 export default mongoose.model('User', UserSchema);

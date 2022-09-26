@@ -14,10 +14,12 @@ import forEach from 'lodash/forEach';
 import compact from 'lodash/compact';
 import intersection from 'lodash/intersection';
 import difference from 'lodash/difference';
-import { getGlobalOption, getModelOption, getModelRef } from './options';
+import { getGlobalOption, getModelOption } from './options';
+import { getModelRef } from './meta';
 import { Populate, Projection, MiddlewareContext, Validation } from './interfaces';
 import Permission, { Permissions } from './permission';
 import Controller from './controller';
+import PublicController from './controller-public';
 import { normalizeSelect, arrToObj, createValidator } from './helpers';
 import { isDocument } from './lib';
 
@@ -355,6 +357,10 @@ export function macl(modelName: string) {
   return new Controller(this, modelName);
 }
 
+export function maclExt(modelName: string) {
+  return new PublicController(this, modelName);
+}
+
 export async function setGenerators(req, res, next) {
   if (req[MIDDLEWARE]) return next();
 
@@ -376,6 +382,7 @@ export async function setGenerators(req, res, next) {
   req._setPermissions = setPermissions.bind(req);
   req._canActivate = canActivate.bind(req);
   req._isAllowed = isAllowed.bind(req);
+  req._macl = maclExt.bind(req);
   req.macl = macl.bind(req);
 
   await req._setPermissions();

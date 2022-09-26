@@ -18,6 +18,15 @@ router.use('/', userRoutes);
 router.use('/', orgRoutes);
 router.use('/', rootRouter.routes);
 
+router.get('/user-custom', [
+  guard('isAdmin'),
+  async (req, res, next) => {
+    const model = req.macl('User');
+    const user = await model.findOne({ options: { lean: false } });
+    res.json(user.permissions);
+  },
+]);
+
 router.get('/admin-route', [
   guard('isAdmin'),
   (req, res, next) => {

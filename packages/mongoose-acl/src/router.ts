@@ -9,7 +9,8 @@ import intersection from 'lodash/intersection';
 import Model from './model';
 
 import { setGenerators } from './generators';
-import { getGlobalOption, setModelOptions, setModelOption, getModelOptions, getModelSub } from './options';
+import { getGlobalOption, setModelOptions, setModelOption, getModelOptions } from './options';
+import { getModelSub } from './meta';
 import { RootRouterProps, ModelRouterProps, Validation, RootQueryEntry } from './interfaces';
 import { isArray } from 'lodash';
 
@@ -88,7 +89,7 @@ export class ModelRouter {
 
       const { limit, page, include_permissions, include_count, lean } = req.query;
 
-      const model = req.macl(this.modelName);
+      const model = req._macl(this.modelName);
       return model.list({
         limit,
         page,
@@ -110,7 +111,7 @@ export class ModelRouter {
       let { query, select, sort, populate, limit, page, options = {} } = req.body;
       const { includePermissions, includeCount, populateAccess, lean } = options;
 
-      const model = req.macl(this.modelName);
+      const model = req._macl(this.modelName);
       return model.list({
         query,
         select,
@@ -136,7 +137,7 @@ export class ModelRouter {
 
       const { include_permissions } = req.query;
 
-      const model = req.macl(this.modelName);
+      const model = req._macl(this.modelName);
       const doc = await model.create(req.body, { includePermissions: parseBooleanString(include_permissions) });
 
       res.status(201).json(doc);
@@ -146,7 +147,7 @@ export class ModelRouter {
     // NEW - EMPTY //
     /////////////////
     this.router.get(`${this.basename}/new`, setGenerators, async (req, res) => {
-      const model = req.macl(this.modelName);
+      const model = req._macl(this.modelName);
       return model.empty();
     });
   }
@@ -164,7 +165,7 @@ export class ModelRouter {
 
       const id = req.params[this.idParam];
       const { include_permissions, try_list, lean } = req.query;
-      const model = req.macl(this.modelName);
+      const model = req._macl(this.modelName);
       return model.read(id, {
         options: {
           includePermissions: parseBooleanString(include_permissions),
@@ -185,7 +186,7 @@ export class ModelRouter {
       let { select, populate, options = {} } = req.body;
       const { includePermissions, tryList, populateAccess, lean } = options;
 
-      const model = req.macl(this.modelName);
+      const model = req._macl(this.modelName);
       return model.read(id, {
         select,
         populate,
@@ -203,7 +204,7 @@ export class ModelRouter {
       const id = req.params[this.idParam];
       const { returning_all } = req.query;
 
-      const model = req.macl(this.modelName);
+      const model = req._macl(this.modelName);
       return model.update(id, req.body, { returningAll: parseBooleanString(returning_all) });
     });
 
@@ -215,7 +216,7 @@ export class ModelRouter {
       if (!allowed) throw new clientErrors.UnauthorizedError();
 
       const id = req.params[this.idParam];
-      const model = req.macl(this.modelName);
+      const model = req._macl(this.modelName);
       return model.delete(id);
     });
 
@@ -227,7 +228,7 @@ export class ModelRouter {
       if (!allowed) throw new clientErrors.UnauthorizedError();
 
       const { field } = req.params;
-      const model = req.macl(this.modelName);
+      const model = req._macl(this.modelName);
       return model.distinct(field);
     });
 
@@ -238,7 +239,7 @@ export class ModelRouter {
       const { field } = req.params;
       const { query } = req.body;
 
-      const model = req.macl(this.modelName);
+      const model = req._macl(this.modelName);
       return model.distinct(field, { query });
     });
 
@@ -249,7 +250,7 @@ export class ModelRouter {
       const allowed = await req._isAllowed(this.modelName, 'count');
       if (!allowed) throw new clientErrors.UnauthorizedError();
 
-      const model = req.macl(this.modelName);
+      const model = req._macl(this.modelName);
       return model.count({});
     });
 
@@ -259,7 +260,7 @@ export class ModelRouter {
 
       const { query, access } = req.body;
 
-      const model = req.macl(this.modelName);
+      const model = req._macl(this.modelName);
       return model.count(query, access);
     });
   }
@@ -281,7 +282,7 @@ export class ModelRouter {
         if (!allowed) throw new clientErrors.UnauthorizedError();
 
         const id = req.params[this.idParam];
-        const model = req.macl(this.modelName);
+        const model = req._macl(this.modelName);
         return model.listSub(id, sub);
       });
 
@@ -293,7 +294,7 @@ export class ModelRouter {
         if (!allowed) throw new clientErrors.UnauthorizedError();
 
         const id = req.params[this.idParam];
-        const model = req.macl(this.modelName);
+        const model = req._macl(this.modelName);
         return model.listSub(id, sub, req.body);
       });
 
@@ -306,7 +307,7 @@ export class ModelRouter {
 
         const id = req.params[this.idParam];
         const { subId } = req.params;
-        const model = req.macl(this.modelName);
+        const model = req._macl(this.modelName);
         return model.readSub(id, sub, subId);
       });
 
@@ -319,7 +320,7 @@ export class ModelRouter {
 
         const id = req.params[this.idParam];
         const { subId } = req.params;
-        const model = req.macl(this.modelName);
+        const model = req._macl(this.modelName);
         return model.readSub(id, sub, subId, req.body);
       });
 
@@ -332,7 +333,7 @@ export class ModelRouter {
 
         const id = req.params[this.idParam];
         const { subId } = req.params;
-        const model = req.macl(this.modelName);
+        const model = req._macl(this.modelName);
         return model.updateSub(id, sub, subId, req.body);
       });
 
@@ -344,7 +345,7 @@ export class ModelRouter {
         if (!allowed) throw new clientErrors.UnauthorizedError();
 
         const id = req.params[this.idParam];
-        const model = req.macl(this.modelName);
+        const model = req._macl(this.modelName);
         return model.createSub(id, sub, req.body);
       });
 
@@ -357,7 +358,7 @@ export class ModelRouter {
 
         const id = req.params[this.idParam];
         const { subId } = req.params;
-        const model = req.macl(this.modelName);
+        const model = req._macl(this.modelName);
         return model.deleteSub(id, sub, subId);
       });
     }
@@ -498,7 +499,7 @@ export class RootRouter {
           if (!['list', 'create', 'empty', 'read', 'update', 'delete', 'distinct', 'count'].includes(item.operation))
             return null;
 
-          const model = req.macl(item.modelName);
+          const model = req._macl(item.modelName);
           const op = model[item.operation].bind(model);
           return isArray(item.arguments) ? op(...item.arguments) : op(item.arguments);
         }),

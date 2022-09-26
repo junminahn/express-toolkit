@@ -129,4 +129,16 @@ describe('Model Option - validate', () => {
   it('should pass the route validation', async () => {
     const response = await request(app).get('/api/admin-route').set('user', 'nobody').expect(500);
   });
+
+  it('should return permissions for the user document', async () => {
+    const response = await request(app)
+      .get('/api/user-custom')
+      .set('user', 'admin')
+      .expect('Content-Type', /json/)
+      .expect(200);
+
+    expect(response.body['edit.name']).to.equal(true);
+    expect(response.body['edit.role']).to.equal(true);
+    expect(response.body['edit.public']).to.equal(true);
+  });
 });

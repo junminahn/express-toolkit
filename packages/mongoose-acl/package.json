@@ -1,6 +1,6 @@
 {
   "name": "express-mongoose-acl",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "REST API Access control built in Express and Mongoose",
   "license": "MIT",
   "main": "lib/index.js",
@@ -11,6 +11,11 @@
     "url": "https://github.com/junminahn/express-toolkit"
   },
   "homepage": "https://express-toolkit.github.io/mongoose-acl/1.philosophy/",
+  "keywords": [
+    "express",
+    "mongoose",
+    "acl"
+  ],
   "scripts": {
     "build": "tsc -d",
     "dev": "tsc -w",
