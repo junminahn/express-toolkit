@@ -1,6 +1,6 @@
 const express = require('express');
-const expect = require('expect.js');
 const request = require('supertest');
+const { expect } = require('chai');
 const JsonRouter = require('./index');
 
 const router = new JsonRouter();
@@ -174,5 +174,28 @@ describe(`Check other routing functions`, function () {
         expect(res.body.message).to.be.equal(CUSTOM_ERROR_MESSAGE);
         return done();
       });
+  });
+});
+
+describe(`Endpoints`, function () {
+  it(`should collect the added endpoints`, function (done) {
+    const endpoints = router.getEndpoints();
+    expect(endpoints).to.deep.equal([
+      { method: 'ALL', path: '/all-route' },
+      { method: 'GET', path: '/get-route' },
+      { method: 'POST', path: '/post-route' },
+      { method: 'PUT', path: '/put-route' },
+      { method: 'DELETE', path: '/delete-route' },
+      { method: 'ALL', path: '/route-route' },
+      { method: 'GET', path: '/route-route' },
+      { method: 'POST', path: '/route-route' },
+      { method: 'PUT', path: '/route-route' },
+      { method: 'DELETE', path: '/route-route' },
+      { method: 'GET', path: '/next' },
+      { method: 'GET', path: '/unauthorized-error' },
+      { method: 'GET', path: '/original-error-message' },
+      { method: 'GET', path: '/custom-error-message' },
+    ]);
+    done();
   });
 });

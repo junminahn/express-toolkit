@@ -9,74 +9,115 @@ const apiHandler = require('api-request-handler');
 
 const { handleResponse } = apiHandler;
 
+const METHODS = [
+  'all',
+  'checkout',
+  'copy',
+  'delete',
+  'get',
+  'head',
+  'lock',
+  'merge',
+  'mkactivity',
+  'mkcol',
+  'move',
+  'm-search',
+  'notify',
+  'options',
+  'patch',
+  'post',
+  'purge',
+  'put',
+  'report',
+  'search',
+  'subscribe',
+  'trace',
+  'unlock',
+  'unsubscribe',
+];
+
+const addLeadingSlash = (str) => (str.startsWith('/') ? str : `/${str}`);
+
 class JsonRouter {
+  methods = [];
+  endpoints = [];
+
   constructor() {
     this._router = require('express').Router();
+
+    // see https://expressjs.com/en/4x/api.html#router.METHOD
+    let x = 0;
+    const len = METHODS.length;
+    for (x = 0; x < len; x++) {
+      const method = METHODS[x];
+
+      if (typeof this._router[method] !== 'function') {
+        continue;
+      }
+
+      this.methods.push(method);
+
+      Object.defineProperty(this, method, {
+        value: function (path, ...callbacks) {
+          this._router[method].call(this._router, path, handleResponse(callbacks));
+          this.addEndpoint(method, path);
+          return this;
+        },
+        enumerable: false,
+        writable: false,
+        configurable: false,
+      });
+    }
   }
 
   get original() {
     return this._router;
   }
 
+  // see https://expressjs.com/en/4x/api.html#router.param
   param() {
     return this._router.param.apply(this._router, arguments);
   }
 
+  // see https://expressjs.com/en/4x/api.html#router.use
   use() {
     return this._router.use.apply(this._router, arguments);
   }
 
-  all(path, ...callbacks) {
-    this._router.all.call(this._router, path, handleResponse(callbacks));
-    return this;
-  }
-
-  get(path, ...callbacks) {
-    this._router.get.call(this._router, path, handleResponse(callbacks));
-    return this;
-  }
-
-  post(path, ...callbacks) {
-    this._router.post.call(this._router, path, handleResponse(callbacks));
-    return this;
-  }
-
-  put(path, ...callbacks) {
-    this._router.put.call(this._router, path, handleResponse(callbacks));
-    return this;
-  }
-
-  delete(path, ...callbacks) {
-    this._router.delete.call(this._router, path, handleResponse(callbacks));
-    return this;
-  }
-
+  // see https://expressjs.com/en/4x/api.html#router.route
   route(path) {
     const _this = this;
-    const def = {
-      all() {
-        _this.all(path, ...arguments);
-        return def;
-      },
-      get() {
-        _this.get(path, ...arguments);
-        return def;
-      },
-      post() {
-        _this.post(path, ...arguments);
-        return def;
-      },
-      put() {
-        _this.put(path, ...arguments);
-        return def;
-      },
-      delete() {
-        _this.delete(path, ...arguments);
-        return def;
-      },
-    };
+    const def = {};
+
+    let x = 0;
+    const len = this.methods.length;
+    for (x = 0; x < len; x++) {
+      const method = this.methods[x];
+
+      Object.defineProperty(def, method, {
+        value: function (...args) {
+          _this[method](path, ...args);
+          return def;
+        },
+        enumerable: false,
+        writable: false,
+        configurable: false,
+      });
+    }
 
     return def;
+  }
+
+  addEndpoint(method, path) {
+    this.endpoints.push({ method: method.toUpperCase(), path: this.normalizePath(path) });
+  }
+
+  getEndpoints() {
+    return this.endpoints;
+  }
+
+  normalizePath(path) {
+    return addLeadingSlash(path.toLowerCase());
   }
 }
 
