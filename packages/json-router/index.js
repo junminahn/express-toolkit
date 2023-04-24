@@ -6,6 +6,7 @@
 
 const clientErrors = require('client-errors');
 const apiHandler = require('api-request-handler');
+const success = require('api-request-handler/responses/success');
 
 const { handleResponse } = apiHandler;
 
@@ -122,6 +123,7 @@ class JsonRouter {
 }
 
 JsonRouter.clientErrors = clientErrors;
+JsonRouter.success = success;
 
 Object.defineProperty(JsonRouter, 'errorMessageProvider', {
   set: function (customErrorMessageProvider) {
