@@ -218,11 +218,9 @@ const nextFn = function (event, next) {
  * Return an express router function.
  */
 const routerFn = function (fn) {
-  const event = {
-    canceled: false,
-  };
-
   return function (req, res, next) {
+    const event = { canceled: false };
+
     try {
       const result = fn(req, res, nextFn(event, next));
       handleResult(res, result, event);
