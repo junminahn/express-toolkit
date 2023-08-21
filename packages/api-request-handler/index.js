@@ -207,7 +207,10 @@ const handleResult = function (res, result, event) {
   if (res.headersSent) return;
   if (event.canceled) return;
 
-  if (isPromise(result)) handlePromise(res, result, event);
+  if (event.nextValue) {
+    if (event.hasError) sendError(res, event.nextValue, event);
+    else sendJson(res, event.nextValue, event);
+  } else if (isPromise(result)) handlePromise(res, result, event);
   else sendJson(res, result, event);
 };
 
@@ -239,12 +242,7 @@ const routerFn = function (fn) {
 
     try {
       const result = fn(req, res, nextFn(event, next));
-      if (event.nextValue) {
-        if (event.hasError) sendError(res, event.nextValue, event);
-        else handleResult(res, event.nextValue, event);
-      } else {
-        handleResult(res, result, event);
-      }
+      handleResult(res, result, event);
     } catch (err) {
       if (res.headersSent) return;
       sendError(res, err, event);
