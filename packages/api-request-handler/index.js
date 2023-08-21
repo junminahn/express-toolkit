@@ -209,7 +209,16 @@ const handleResult = function (res, result, event) {
  */
 const nextFn = function (event, next) {
   return function (...args) {
-    event.canceled = true;
+    if (args.length > 0) {
+      event.nextValue = args[0];
+      if (args[0] instanceof Error) {
+        event.hasError = true;
+      } else {
+        event.hasValue = true;
+      }
+    } else {
+      event.canceled = true;
+    }
     next(...args);
   };
 };
@@ -219,11 +228,16 @@ const nextFn = function (event, next) {
  */
 const routerFn = function (fn) {
   return function (req, res, next) {
-    const event = { canceled: false };
+    const event = { canceled: false, hasError: false, hasValue: false, nextValue: null };
 
     try {
       const result = fn(req, res, nextFn(event, next));
-      handleResult(res, result, event);
+      if (event.nextValue) {
+        if (event.hasError) sendError(res, event.nextValue, event);
+        else handleResult(res, event.nextValue, event);
+      } else {
+        handleResult(res, result, event);
+      }
     } catch (err) {
       if (res.headersSent) return;
       sendError(res, err, event);

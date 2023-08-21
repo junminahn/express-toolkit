@@ -67,6 +67,17 @@ describe('Multiple Async Middlewares', function () {
   });
 });
 
+describe('Multiple Async Middlewares in Next', function () {
+  const key = 'multiple-async-middlewares-next';
+  const status = 200;
+  const value = 'pear';
+
+  it(`should return ${value}`, function (done) {
+    app.get(`/${key}`, handleResponse(fnAppleNext, fnPearInNext));
+    hit(`/${key}`, status, value, done);
+  });
+});
+
 describe('Error Handling', function () {
   const key = 'error-handling';
   const status = 422;
@@ -100,13 +111,35 @@ describe('Multiple Async Error Handling', function () {
   });
 });
 
-describe('Custom Client Error Handling', function () {
-  const key = 'custom-client-error-handling';
+describe('Unauthorized Error Handling', function () {
+  const key = 'unauthorized-error-handling';
   const status = 401;
   const value = 'The user is not authorized';
 
   it(`should return ${value}`, function (done) {
-    app.get(`/${key}`, handleResponse(fnClientError));
+    app.get(`/${key}`, handleResponse(fnUnauthorizedError));
+    hit(`/${key}`, status, value, done);
+  });
+});
+
+describe('Unauthorized Error in Next Handling', function () {
+  const key = 'unauthorized-error-in-next-handling';
+  const status = 401;
+  const value = 'The user is not authorized';
+
+  it(`should return ${value}`, function (done) {
+    app.get(`/${key}`, handleResponse(fnUnauthorizedErrorInNext));
+    hit(`/${key}`, status, value, done);
+  });
+});
+
+describe('Custom Client Error in Next Handling', function () {
+  const key = 'custom-client-error-in-next-handling';
+  const status = 422;
+  const value = 'error-in-next';
+
+  it(`should return ${value}`, function (done) {
+    app.get(`/${key}`, handleResponse(fnErrorInNext));
     hit(`/${key}`, status, value, done);
   });
 });
@@ -231,6 +264,10 @@ function fnPearPromise() {
   return Promise.resolve('pear');
 }
 
+function fnPearInNext(req, res, next) {
+  next('pear');
+}
+
 function fnError1() {
   throw new Error('error1');
 }
@@ -244,6 +281,14 @@ function fnError2Next(req, res, next) {
   throw new Error('error2');
 }
 
-function fnClientError() {
+function fnErrorInNext(req, res, next) {
+  next(new Error('error-in-next'));
+}
+
+function fnUnauthorizedError() {
   throw new UnauthorizedError();
+}
+
+function fnUnauthorizedErrorInNext(req, res, next) {
+  next(new UnauthorizedError());
 }

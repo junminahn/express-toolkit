@@ -1,7 +1,7 @@
 {
   "name": "api-request-handler",
   "description": "API Request Handler",
-  "version": "0.8.3",
+  "version": "0.8.4",
   "author": "Junmin Ahn",
   "license": "MIT",
   "keywords": [
