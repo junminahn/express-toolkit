@@ -218,8 +218,8 @@ const nextFn = function (event, next) {
       }
     } else {
       event.canceled = true;
+      next();
     }
-    next(...args);
   };
 };
 

@@ -139,7 +139,7 @@ describe('Custom Client Error in Next Handling', function () {
   const value = 'error-in-next';
 
   it(`should return ${value}`, function (done) {
-    app.get(`/${key}`, handleResponse(fnErrorInNext));
+    app.get(`/${key}`, handleResponse(fnErrorInNext, fnPear));
     hit(`/${key}`, status, value, done);
   });
 });
