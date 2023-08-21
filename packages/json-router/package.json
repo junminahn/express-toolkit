@@ -1,7 +1,7 @@
 {
   "name": "express-json-router",
   "description": "Express router wrapper to send json response",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "author": "Junmin Ahn",
   "license": "MIT",
   "keywords": [
