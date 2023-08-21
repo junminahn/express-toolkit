@@ -187,7 +187,14 @@ const postError = {
  */
 const handlePromise = function (res, promise, event) {
   promise.then(
-    (data) => sendJson(res, data, event),
+    (data) => {
+      if (event.nextValue) {
+        if (event.hasError) sendError(res, event.nextValue, event);
+        else sendJson(res, event.nextValue, event);
+      } else {
+        sendJson(res, data, event);
+      }
+    },
     (err) => sendError(res, err, event),
   );
 };
