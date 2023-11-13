@@ -3,7 +3,7 @@
   "version": "0.10.1",
   "description": "Mongoose wrapper to inject request object into mongoose Query, Document, and Hooks",
   "scripts": {
-    "test": "node test",
+    "_test": "node test",
     "sync-version": "node ../../scripts/sync-version.js --name=express-mong"
   },
   "keywords": [
