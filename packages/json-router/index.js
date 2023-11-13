@@ -42,8 +42,15 @@ const addLeadingSlash = (str) => (str.startsWith('/') ? str : `/${str}`);
 class JsonRouter {
   methods = [];
   endpoints = [];
+  middlewares = [];
+  basePath = '';
 
-  constructor() {
+  constructor(basePath, middlewares) {
+    this.basePath = basePath || '';
+    if (middlewares) {
+      this.middlewares = Array.isArray(middlewares) ? middlewares : [middlewares];
+    }
+
     this._router = require('express').Router();
 
     // see https://expressjs.com/en/4x/api.html#router.METHOD
@@ -60,8 +67,9 @@ class JsonRouter {
 
       Object.defineProperty(this, method, {
         value: function (path, ...callbacks) {
-          this._router[method].call(this._router, path, handleResponse(callbacks));
-          this.addEndpoint(method, path);
+          const fullpath = this.basePath + path;
+          this._router[method].call(this._router, fullpath, handleResponse(this.middlewares.concat(callbacks)));
+          this.addEndpoint(method, fullpath);
           return this;
         },
         enumerable: false,

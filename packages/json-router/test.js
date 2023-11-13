@@ -4,6 +4,10 @@ const { expect } = require('chai');
 const JsonRouter = require('./index');
 
 const router = new JsonRouter();
+const routerOptions = new JsonRouter('/api', (req, res, next) => {
+  req._middleware = 'middleware';
+  next();
+});
 const { clientErrors } = JsonRouter;
 
 const ORIGINAL_ERROR_MESSAGE = 'It is an original error message';
@@ -43,7 +47,11 @@ router.get('/custom-error-message', () => {
   throw new Error(ORIGINAL_ERROR_MESSAGE);
 });
 
-app.use('/', router.original).listen();
+routerOptions
+  .get('/get-route', (req) => ({ middleware: req._middleware, value: 'get-route' }))
+  .post('/post-route', (req) => ({ middleware: req._middleware, value: 'post-route' }));
+
+app.use('/', router.original).use('/', routerOptions.original).listen();
 
 describe(`Check if route exists`, function () {
   it(`all-route`, function (done) {
@@ -197,5 +205,27 @@ describe(`Endpoints`, function () {
       { method: 'GET', path: '/custom-error-message' },
     ]);
     done();
+  });
+});
+
+describe(`Options`, function () {
+  it(`should returns expected value for '/api/get-route'`, function (done) {
+    request(app)
+      .get('/api/get-route')
+      .end((err, res) => {
+        expect(res.body.middleware).to.be.equal('middleware');
+        expect(res.body.value).to.be.equal('get-route');
+        return done();
+      });
+  });
+
+  it(`should returns expected value for '/api/post-route'`, function (done) {
+    request(app)
+      .post('/api/post-route')
+      .end((err, res) => {
+        expect(res.body.middleware).to.be.equal('middleware');
+        expect(res.body.value).to.be.equal('post-route');
+        return done();
+      });
   });
 });

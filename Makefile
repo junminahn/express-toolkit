@@ -10,4 +10,5 @@ mk-build:
 
 .PHONY: db
 db:
-	mongod --dbpath ~/projects/_mongodb/db
+	mkdir -p ../_mongodb/express-toolkit
+	mongod --dbpath ../_mongodb/express-toolkit
