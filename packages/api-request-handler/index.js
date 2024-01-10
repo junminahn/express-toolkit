@@ -5,6 +5,48 @@
  */
 const assert = require('assert');
 const { Response } = require('./responses');
+const {
+  OK,
+  Created,
+  Accepted,
+  NonAuthoritativeInfo,
+  NoContent,
+  ResetContent,
+  PartialContent,
+  MultiStatus,
+  AlreadyReported,
+  IMUsed,
+} = require('./responses/success');
+const { CSVResponse } = require('./responses/csv');
+const {
+  BadRequestError,
+  UnauthorizedError,
+  ForbiddenError,
+  NotFoundError,
+  MethodNotAllowedError,
+  NotAcceptableError,
+  ProxyAuthRequiredError,
+  RequestTimeoutError,
+  ConflictError,
+  GoneError,
+  LengthRequiredError,
+  PreconditionFailedError,
+  PayloadTooLargeError,
+  UriTooLongError,
+  UnsupportedMediaTypeError,
+  RequestedRangeNotSatisfiableError,
+  ExpectationFailedError,
+  TeapotError,
+  MisdirectedRequestError,
+  UnprocessableEntityError,
+  LockedError,
+  FailedDependencyError,
+  UpgradeRequiredError,
+  PreconditionRequiredError,
+  TooManyRequestsError,
+  RequestHeaderFieldsTooLargeError,
+  UnavailableForLegalReasonsError,
+} = require('client-errors');
 
 /**
  * Helper functions to identify specific types.
@@ -46,6 +88,8 @@ const _sendJson = function (res, data, event) {
 
   if (data instanceof Response) {
     res.status(data.statusCode).json(data.data);
+  } else if (data instanceof CSVResponse) {
+    data.streamCsv(res);
   } else {
     res.json(data);
   }
@@ -269,6 +313,49 @@ module.exports = {
   handleResponse,
   handleResult,
   handlePromise,
+  HttpResponse: {
+    // 2XX SUCCESS
+    OK: (...args) => new OK(...args),
+    Created: (...args) => new Created(...args),
+    Accepted: (...args) => new Accepted(...args),
+    NonAuthoritativeInfo: (...args) => new NonAuthoritativeInfo(...args),
+    NoContent: (...args) => new NoContent(...args),
+    ResetContent: (...args) => new ResetContent(...args),
+    PartialContent: (...args) => new PartialContent(...args),
+    MultiStatus: (...args) => new MultiStatus(...args),
+    AlreadyReported: (...args) => new AlreadyReported(...args),
+    IMUsed: (...args) => new IMUsed(...args),
+    // 4XX CLIENT ERROR
+    BadRequest: (...args) => new BadRequestError(...args),
+    Unauthorized: (...args) => new UnauthorizedError(...args),
+    Forbidden: (...args) => new ForbiddenError(...args),
+    NotFound: (...args) => new NotFoundError(...args),
+    MethodNotAllowed: (...args) => new MethodNotAllowedError(...args),
+    NotAcceptable: (...args) => new NotAcceptableError(...args),
+    ProxyAuthRequired: (...args) => new ProxyAuthRequiredError(...args),
+    RequestTimeout: (...args) => new RequestTimeoutError(...args),
+    Conflict: (...args) => new ConflictError(...args),
+    Gone: (...args) => new GoneError(...args),
+    LengthRequired: (...args) => new LengthRequiredError(...args),
+    PreconditionFailed: (...args) => new PreconditionFailedError(...args),
+    PayloadTooLarge: (...args) => new PayloadTooLargeError(...args),
+    UriTooLong: (...args) => new UriTooLongError(...args),
+    UnsupportedMediaType: (...args) => new UnsupportedMediaTypeError(...args),
+    RequestedRangeNotSatisfiable: (...args) => new RequestedRangeNotSatisfiableError(...args),
+    ExpectationFailed: (...args) => new ExpectationFailedError(...args),
+    Teapot: (...args) => new TeapotError(...args),
+    MisdirectedRequest: (...args) => new MisdirectedRequestError(...args),
+    UnprocessableEntity: (...args) => new UnprocessableEntityError(...args),
+    Locked: (...args) => new LockedError(...args),
+    FailedDependency: (...args) => new FailedDependencyError(...args),
+    UpgradeRequired: (...args) => new UpgradeRequiredError(...args),
+    PreconditionRequired: (...args) => new PreconditionRequiredError(...args),
+    TooManyRequests: (...args) => new TooManyRequestsError(...args),
+    RequestHeaderFieldsTooLarge: (...args) => new RequestHeaderFieldsTooLargeError(...args),
+    UnavailableForLegalReasons: (...args) => new UnavailableForLegalReasonsError(...args),
+    // Others
+    CSV: (...args) => new CSVResponse(...args),
+  },
   set errorMessageProvider(fn) {
     errorMessageProvider.set(fn);
   },
