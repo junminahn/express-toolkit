@@ -7,17 +7,17 @@
   resolved "https://registry.yarnpkg.com/@aashutoshrathi/word-wrap/-/word-wrap-1.2.6.tgz#bd9154aec9983f77b3a034ecaa015c2e4201f6cf"
   integrity sha512-1Yjs2SvM8TflER/OD3cOjhWWOZb58A2t7wpE2S9XfBYTiIl+XFhQG2bjy4Pu1I+EAlCNUzRDYDdFwFYUKvXcIA==
 
-"@angular/common@^14.2.2":
-  version "14.3.0"
-  resolved "https://registry.yarnpkg.com/@angular/common/-/common-14.3.0.tgz#dcf675e1db3016cdb605a05be6182a8cea71e139"
-  integrity sha512-pV9oyG3JhGWeQ+TFB0Qub6a1VZWMNZ6/7zEopvYivdqa5yDLLDSBRWb6P80RuONXyGnM1pa7l5nYopX+r/23GQ==
+"@angular/common@^17.0.0":
+  version "17.0.9"
+  resolved "https://registry.yarnpkg.com/@angular/common/-/common-17.0.9.tgz#f8b591b3db8ff8eb188f38110d7d7f3c27853f90"
+  integrity sha512-xNS7DDfvFqfLr6xeZNJ+jORuGXP6hhv2HsYD3jb6ZQ8+QuMg+3MDij4a0L5npn72gH/Zz4JRKZ3Bt4Cq6cUqUA==
   dependencies:
     tslib "^2.3.0"
 
-"@angular/core@^14.2.2":
-  version "14.3.0"
-  resolved "https://registry.yarnpkg.com/@angular/core/-/core-14.3.0.tgz#7f44c59b6e866fa4cee7221495040c1ead433895"
-  integrity sha512-wYiwItc0Uyn4FWZ/OAx/Ubp2/WrD3EgUJ476y1XI7yATGPF8n9Ld5iCXT08HOvc4eBcYlDfh90kTXR6/MfhzdQ==
+"@angular/core@^17.0.0":
+  version "17.0.9"
+  resolved "https://registry.yarnpkg.com/@angular/core/-/core-17.0.9.tgz#407f8ee879af777f092f64886fc7b82ccf6e8b80"
+  integrity sha512-LtDWzyx19XNmAjXju9xjw//rDZPUFu2bllHqzS6NVO1bE4PwJHIs0zfvygh0j46ubKp1gUICNk3jvYK9FMVinA==
   dependencies:
     tslib "^2.3.0"
 
