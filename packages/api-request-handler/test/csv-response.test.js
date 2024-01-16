@@ -89,7 +89,7 @@ describe('CSV responses', function () {
 
     app.get(
       url,
-      handleResponse(() => HttpResponse.CSV(testData)),
+      handleResponse(() => HttpResponse.csv(testData)),
     );
 
     request(app)
