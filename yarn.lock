@@ -7,10 +7,10 @@
   resolved "https://registry.yarnpkg.com/@aashutoshrathi/word-wrap/-/word-wrap-1.2.6.tgz#bd9154aec9983f77b3a034ecaa015c2e4201f6cf"
   integrity sha512-1Yjs2SvM8TflER/OD3cOjhWWOZb58A2t7wpE2S9XfBYTiIl+XFhQG2bjy4Pu1I+EAlCNUzRDYDdFwFYUKvXcIA==
 
-"@angular/common@^14.2.2":
-  version "14.3.0"
-  resolved "https://registry.yarnpkg.com/@angular/common/-/common-14.3.0.tgz#dcf675e1db3016cdb605a05be6182a8cea71e139"
-  integrity sha512-pV9oyG3JhGWeQ+TFB0Qub6a1VZWMNZ6/7zEopvYivdqa5yDLLDSBRWb6P80RuONXyGnM1pa7l5nYopX+r/23GQ==
+"@angular/common@^19.0.0":
+  version "19.2.22"
+  resolved "https://registry.yarnpkg.com/@angular/common/-/common-19.2.22.tgz#f517b9bd62600ef4f85b86906ad418cff3896c0a"
+  integrity sha512-OGvJkK9xvlXF0LsM8T2NTgL6ehr+P4t493xztdIwiO7CzseDzHCBNZ8L1TwaVqqP3Xj0UhGTtWXp7YN4N9+u7Q==
   dependencies:
     tslib "^2.3.0"
 
